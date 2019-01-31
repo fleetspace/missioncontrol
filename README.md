@@ -78,4 +78,4 @@ See here for some additional configuration options : http://cookiecutter-django.
     docker-compose -f production.yml run --rm django pipenv run ./manage.py createsuperuser
     ```
 
-* Follow the [Deployment Method](#deployment-method) steps.
+* Follow the [Deployment Method](#deployment-method-production) steps.
