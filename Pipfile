@@ -1,0 +1,35 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = {extras = ["argon2"],version = "*"}
+requests = "*"
+pytz = "*"
+connexion = {extras = ["swagger-ui"],version = "*"}
+gunicorn = "*"
+psycopg2 = "*"
+whitenoise = {extras = ["brotli"],version = "*"}
+pytest-django = "*"
+bitarray = "*"
+slackclient = "*"
+astropy = "*"
+skyfield = "*"
+ipdb = "*"
+pycrypto = "*"
+scipy = "*"
+python-jose = "*"
+tabulate = "*"
+django-environ = "*"
+
+[dev-packages]
+pylint = "*"
+"autopep8" = "*"
+yapf = "*"
+rope = "*"
+django-debug-toolbar = "*"
+django-extensions = "*"
+
+[requires]
+python_version = "3.6"

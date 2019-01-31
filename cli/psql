@@ -1,0 +1,6 @@
+#!/bin/bash
+COMPOSE_ENV=${COMPOSE_ENV:-local.yml}
+CMD='PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -p $POSTGRES_PORT $POSTGRES_DB'
+
+docker-compose -f $COMPOSE_ENV run --rm postgres \
+    bash -c "$CMD"

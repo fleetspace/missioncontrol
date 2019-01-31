@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=missioncontrol
+POSTGRES_USER=EGCDKDTxoNSTZQygSRZtbIKcFsZufyfz
+POSTGRES_PASSWORD=bbpXtdcPn8TvPgKn3QoxXDnLFNPcrsZ3iKfMpiq8fmNeVAUeRAKwGE344IPkf1Rq

@@ -1,0 +1,5 @@
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+DJANGO_JWT_SECRET=ILIKEASCREThowlongdoesitNeedtTOBeHey

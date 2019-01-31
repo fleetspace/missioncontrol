@@ -1,0 +1,6 @@
+#!/bin/bash
+COMPOSE_ENV=${COMPOSE_ENV:-local.yml}
+CMD="pipenv run ./manage.py $@"
+
+docker-compose -f $COMPOSE_ENV run --rm django \
+    bash -c "$CMD"

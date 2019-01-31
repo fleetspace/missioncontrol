@@ -1,0 +1,1308 @@
+openapi: 3.0.2
+info:
+  version: 0.0.0
+  title: mission control
+servers:
+  - url: /api/v0
+
+security:
+  - jwt: ['operators']
+
+paths:
+  /auth/jwt:
+    get:
+      tags: ['auth']
+      security:
+        - jwt: []
+        - basic: []
+      summary: Return JWT token
+      operationId: v0.auth.generate_token
+      responses:
+        '200':
+          description: JWT token
+          content:
+            'text/plain':
+              schema:
+                type: string
+  /satellites/:
+    get:
+      tags: ['satellites']
+      description: get a list of satellites
+      operationId: v0.satellites.search
+      parameters:
+       - in: query
+         name: limit
+         schema:
+           type: integer
+           default: 100
+      responses:
+        200:
+          description: A list of Satellites
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Satellites"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /satellites/{hwid}/:
+    get:
+      tags: ['satellites']
+      description: get a Satellite by hwid
+      operationId: v0.satellites.get_hwid
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      responses:
+        200:
+          description: A Satellite
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Satellite"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: ['satellites']
+      description: update satellite fields
+      operationId: v0.satellites.patch
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: satellite
+              "$ref": "#/components/schemas/Satellite"
+      responses:
+        200:
+          description: A Satellite
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Satellite"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['satellites']
+      description: update a satellite
+      operationId: v0.satellites.put
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: satellite
+              "$ref": "#/components/schemas/Satellite"
+      responses:
+        200:
+          description: A Satellite
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Satellite"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: ['satellites']
+      description: delete a satellite
+      operationId: v0.satellites.delete
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      responses:
+        204:
+          description: No Content
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /task-stacks/:
+    get:
+      tags: ['task-stacks']
+      description: get a list of active task-stacks
+      operationId: v0.task_stacks.search
+      parameters:
+       - in: query
+         name: limit
+         schema:
+           type: integer
+           default: 100
+       - in: query
+         name: name
+         schema:
+           type: string
+       - in: query
+         name: environment
+         schema:
+           type: string
+      responses:
+        200:
+          description: A list of TaskStacks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStacks"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /satellites/{hwid}/task-stack/:
+    get:
+      tags: ['satellites', 'task-stacks']
+      description: get a task-stack by satellite
+      operationId: v0.satellite_task_stack.get_task_stack
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      responses:
+        200:
+          description: A TaskStack
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStack"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['satellites', 'task-stacks']
+      description: |
+        Create a TaskStack for a Satellite.
+      operationId: v0.satellite_task_stack.put
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: task_stack
+              $ref: "#/components/schemas/TaskStack"
+      responses:
+        200:
+          description: A TaskStack
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStack"
+        409:
+          description: conflict!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /task-stacks/{uuid}/:
+    get:
+      tags: ['task-stacks']
+      description: get a task-stack by uuid
+      operationId: v0.task_stacks.get_task_stack
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      responses:
+        200:
+          description: A TaskStack
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStack"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['task-stacks']
+      description: |
+        Create a TaskStack.
+        TaskStacks are immutable, and cannot be updated
+      operationId: v0.task_stacks.put
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: task_stack
+              $ref: "#/components/schemas/TaskStack"
+      responses:
+        200:
+          description: A TaskStack
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStack"
+        409:
+          description: conflict!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groundstations/:
+    get:
+      tags: ['groundstations']
+      description: get a list of groundstations
+      operationId: v0.groundstations.search
+      parameters:
+       - in: query
+         name: limit
+         schema:
+           type: integer
+           default: 100
+      responses:
+        200:
+          description: A list of GroundStations
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GroundStations"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /groundstations/{hwid}/:
+    get:
+      tags: ['groundstations']
+      description: get a GroundStation by hwid
+      operationId: v0.groundstations.get_hwid
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      responses:
+        200:
+          description: A GroundStation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GroundStation"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: ['groundstations']
+      description: update GroundStation fields
+      operationId: v0.groundstations.patch
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: groundstation
+              "$ref": "#/components/schemas/GroundStation"
+      responses:
+        200:
+          description: A GroundStation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GroundStation"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['groundstations']
+      description: create a GroundStation
+      operationId: v0.groundstations.put
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: groundstation
+              "$ref": "#/components/schemas/GroundStation"
+      responses:
+        200:
+          description: A GroundStation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GroundStation"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: ['groundstations']
+      description: delete a groundstation
+      operationId: v0.groundstations.delete
+      parameters:
+       - in: path
+         required: true
+         name: hwid
+         schema:
+           type: string
+      responses:
+        204:
+          description: No Content
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /passes/:
+    get:
+      tags: ['passes']
+      description: get a list of passes
+      operationId: v0.passes.search
+      parameters:
+       - in: query
+         name: limit
+         schema:
+           type: integer
+           default: 100
+       - in: query
+         name: range_start
+         schema:
+           type: string
+         description: |
+           If neither range_start nor range_end are specified, then the
+           default range of now->2days in the future is applied.
+           Otherwise, the range_start parameter always comes before the
+           range_end paramter.
+           You can either specificy an ISO8601 datetime, or "now".
+       - in: query
+         name: range_end
+         schema:
+           type: string
+         description: |
+           If neither range_start nor range_end are specified, then the
+           default range of now->2days in the future is applied.
+           Otherwise, the range_start parameter always comes before the
+           range_end paramter.
+           You can either specificy an ISO8601 datetime, or "now".
+       - in: query
+         name: range_inclusive
+         description: |
+           If the time range should include accesses that partially overlap
+           the range_start or range_end.
+
+           * both - all accesses that overlap the range are returned
+           * start - accesses overlapping the range_start time are returned
+           * end - accesses overlapping the range_end time are returned
+           * neither - only returns accesses that are fully contained by the range
+         schema:
+           type: string
+           default: both
+           enum:
+             - start
+             - end
+             - both
+             - neither
+       - in: query
+         name: satellites
+         description: list of satellites to include (default is all satellites)
+         style: form
+         explode: false
+         schema:
+           type: array
+           items:
+             type: string
+       - in: query
+         name: groundstations
+         description: list of groundstations to include (default is all groundstations)
+         style: form
+         explode: false
+         schema:
+           type: array
+           items:
+             type: string
+       - in: query
+         name: show_stale
+         description: shows passes even if they are undesired and unscheduled
+         schema:
+           type: boolean
+           default: False
+       - in: query
+         name: order_by
+         description: |
+           Order the results by this field. Use `-` to reverse the ordering.
+         schema:
+           type: string
+           default: start_time
+           enum:
+           - "start_time"
+           - "-start_time"
+      responses:
+        200:
+          description: A list of Passes
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Passes"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /passes/{uuid}/:
+    get:
+      tags: ['passes']
+      description: get a pass by id
+      operationId: v0.passes.get_pass
+      parameters:
+      - in: path
+        required: true
+        name: uuid
+        schema:
+           type: string
+           format: uuid
+      responses:
+        200:
+          description: a Pass
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Pass"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['passes']
+      description: create or update a pass
+      operationId: v0.passes.put
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: _pass
+              allOf:
+              # we want all of the pass fields
+              - "$ref": "#/components/schemas/Pass"
+              # and some of them are required
+              - oneOf:
+                # either they passed an access id
+                # for a full-length pass
+                - required:
+                  - access_id
+                # or they passed the full pass params
+                # for a partial pass
+                - required:
+                  - satellite
+                  - groundstation
+                  - start_time
+                  - end_time
+      responses:
+        200:
+          description: A Pass
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Pass"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: ['passes']
+      description: update fields in a pass
+      operationId: v0.passes.patch
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: _pass
+              "$ref": "#/components/schemas/Pass"
+      responses:
+        200:
+          description: A Pass
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Pass"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: ['passes']
+      description: delete a pass (if it hasn't been scheduled)
+      operationId: v0.passes.delete
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      responses:
+        204:
+          description: No Content
+        400:
+          description: Pass has already been scheduled
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /passes/{uuid}/track/:
+    get:
+      tags: ['passes']
+      description: get an altaz track for a given pass
+      operationId: v0.passes.get_track
+      parameters:
+      - in: path
+        required: true
+        name: uuid
+        schema:
+           type: string
+      responses:
+        200:
+          description: an altaz track for a given access id
+          content:
+            application/vnd.leaf+text:
+              schema:
+                type: string
+            application/vnd.leaf+json:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /passes/{uuid}/recalculate/:
+    post:
+      tags: ['passes']
+      description: get an altaz track for a given pass
+      operationId: v0.passes.recalculate
+      parameters:
+      - in: path
+        required: true
+        name: uuid
+        schema:
+           type: string
+      responses:
+        200:
+          description: an altaz track for a given pass id
+        409:
+          description: conflict!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /passes/{uuid}/attributes/:
+    get:
+      tags: ['passes']
+      description: get the attributes for a given pass
+      operationId: v0.passes.get_attributes
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      responses:
+        200:
+          description: An object of attributes for a given pass
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attributes'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: ['passes']
+      description: Add some attributes to a given pass
+      operationId: v0.passes.patch_attributes
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: attributes
+              "$ref": "#/components/schemas/Attributes"
+      responses:
+        200:
+          description: A list of attributes on the pass after adding these ones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attributes'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['passes']
+      description: Replace the list of attributes with this list
+      operationId: v0.passes.put_attributes
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: attributes
+              "$ref": "#/components/schemas/Attributes"
+      responses:
+        200:
+          description: A list of attributes on the pass
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attributes'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /passes/{uuid}/task-stack/:
+    get:
+      tags: ['passes', 'task-stacks']
+      description: get a task-stack for a pass
+      operationId: v0.pass_task_stack.get_task_stack
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      responses:
+        200:
+          description: A TaskStack
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStack"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['passes', 'task-stacks']
+      description: |
+        Create a TaskStack override for this pass.
+      operationId: v0.pass_task_stack.put
+      parameters:
+       - in: path
+         required: true
+         name: uuid
+         schema:
+           type: string
+           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: task_stack
+              $ref: "#/components/schemas/TaskStack"
+      responses:
+        200:
+          description: A TaskStack
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStack"
+        409:
+          description: conflict!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accesses/:
+    get:
+      tags: ['accesses']
+      description: get a list of accesses
+      operationId: v0.accesses.search
+      parameters:
+       - in: query
+         name: limit
+         schema:
+           type: integer
+           default: 100
+       - in: query
+         name: range_start
+         schema:
+           type: string
+           format: date-time
+       - in: query
+         name: range_end
+         schema:
+           type: string
+           format: date-time
+       - in: query
+         name: range_inclusive
+         description: |
+           If the time range should include accesses that partially overlap
+           the range_start or range_end.
+
+           * both - all accesses that overlap the range are returned
+           * start - accesses overlapping the range_start time are returned
+           * end - accesses overlapping the range_end time are returned
+           * neither - only returns accesses that are fully contained by the range
+         schema:
+           type: string
+           default: both
+           enum:
+             - start
+             - end
+             - both
+             - neither
+       - in: query
+         name: satellites
+         description: list of satellites to include (default is all satellites)
+         style: form  # use csv
+         explode: false
+         schema:
+           type: array
+           items:
+             type: string
+       - in: query
+         name: groundstations
+         description: list of groundstations to include (default is all groundstations)
+         style: form  # use csv
+         explode: false
+         schema:
+           type: array
+           items:
+             type: string
+      responses:
+        200:
+          description: A list of Accesses
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Accesses"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /accesses/{access_id}/:
+    get:
+      tags: ['accesses']
+      description: get an recomputed access from an access id
+      operationId: v0.accesses.get_access
+      parameters:
+      - in: path
+        required: true
+        name: access_id
+        schema:
+           type: string
+      responses:
+        200:
+          description: an Access
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Access"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /accesses/{access_id}/track/:
+    get:
+      tags: ['accesses']
+      description: get an altaz track for a given access id
+      operationId: v0.accesses.get_track
+      parameters:
+      - in: path
+        required: true
+        name: access_id
+        schema:
+           type: string
+      responses:
+        200:
+          description: an altaz track for a given access id
+          content:
+            application/vnd.leaf+text:
+              schema:
+                type: string
+            application/vnd.leaf+json:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    jwt:
+      x-bearerInfoFunc: v0.auth.decode_jwt
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    basic:
+      type: http
+      scheme: basic
+      x-basicInfoFunc: v0.auth.basic_auth
+  schemas:
+    Satellites:
+      type: array
+      items:
+        "$ref": "#/components/schemas/Satellite"
+    Satellite:
+      properties:
+        hwid:
+          description: the authoritative identifier for this asset
+          type: string
+        catid:
+          description: the (external) CSpOC identifier for this asset
+          type: string
+        tle:
+          description: the two line element model of the satellite position
+          nullable: true
+          type: array
+          maxItems: 2
+          minItems: 2
+          items:
+            type: string
+        logger_state:
+          description: A json field for storing the current state of the loggers on the satellite
+          type: object
+          nullable: true
+        task_stack:
+          description: link to the task-stack for this satellite
+          type: string
+          format: uri
+          nullable: true
+
+    GroundStations:
+      type: array
+      items:
+        "$ref": "#/components/schemas/GroundStation"
+    GroundStation:
+      properties:
+        hwid:
+          description: the authoritative identifier for this asset
+          type: string
+        latitude:
+          description: the latitude component of the GPS location
+          type: number
+        longitude:
+          description: the longitude component of the GPS location
+          type: number
+        elevation:
+          description: the elevation component of the GPS location
+          type: number
+        horizon_mask:
+          description: an array of the altitude of the horizon (in deg) for each degree of azimuth
+          nullable: true
+          type: array
+          maxItems: 360
+          minItems: 360
+          items:
+            type: number
+        passes_read_only:
+          description: if true then passes are scheduled externally and cannot be chosen using this api
+          type: boolean
+
+    Accesses:
+      type: array
+      items:
+        "$ref": "#/components/schemas/Access"
+    Access:
+      properties:
+        id:
+          description: the id of this access
+          type: string
+          readOnly: true
+        satellite:
+          description: the hwid of the satellite
+          readOnly: true
+          type: string
+        groundstation:
+          description: the hwid of the groundstation
+          readOnly: true
+          type: string
+        start_time:
+          description: the start_time of the access
+          readOnly: true
+          type: string
+          format: date-time
+        end_time:
+          description: the end_time of the access
+          readOnly: true
+          type: string
+          format: date-time
+        max_alt:
+          description: the maximum altitude of the access (deg)
+          readOnly: true
+          type: number
+        _track:
+          description: link to AltAz track for this access
+          readOnly: true
+          type: string
+        _href:
+          description: link to this access
+          readOnly: true
+          type: string
+
+    Passes:
+      type: array
+      items:
+        "$ref": "#/components/schemas/Pass"
+    Pass:
+      properties:
+        uuid:
+          description: the unique identifier for the pass
+          type: string
+          format: uuid
+        satellite:
+          description: the hwid of the satellite
+          type: string
+        groundstation:
+          description: the hwid of the groundstation
+          type: string
+        tle:
+          description: the two line element model of the satellite position
+          nullable: true
+          type: array
+          maxItems: 2
+          minItems: 2
+          items:
+            type: string
+        access_id:
+          description: link to the corresponding access for this pass
+          type: string
+        start_time:
+          description: the start_time of the pass
+          type: string
+          format: date-time
+        end_time:
+          description: the end_time of the pass
+          type: string
+          format: date-time
+        is_desired:
+          description: if operators want the pass to happen
+          type: boolean
+        scheduled_on_sat:
+          description: if this pass has been scheduled onboard
+          type: boolean
+        scheduled_on_gs:
+          description: if this pass has been scheduled onboard
+          type: boolean
+        is_valid:
+          description: if the pass times still match up with a valid access
+          readOnly: true
+          type: boolean
+        max_alt:
+          description: the maximum altitude of the pass (deg)
+          readOnly: true
+          type: number
+        external_id:
+          description: 3rd parties may reference this pass by a different name, save it here
+          type: string
+        task_stack:
+          description: |
+            link to the task-stack for this pass. If null, then the
+            satellite's task-stack is used.
+          type: string
+          format: uri
+          nullable: true
+        attributes:
+          description: A list of attributes for this pass
+          allOf:
+          - "$ref": "#/components/schemas/Attributes"
+          - readOnly: true
+        _track:
+          description: link to the AltAz track for this access
+          type: string
+          readOnly: true
+        _href:
+          description: link to this pass
+          readOnly: true
+          type: string
+
+    TaskStacks:
+      type: array
+      items:
+        "$ref": "#/components/schemas/TaskStack"
+
+    TaskStack:
+      properties:
+        name:
+          description: a non-unique name for this task stack
+          type: string
+        uuid:
+          description: the unique identifier for the TaskStack
+          type: string
+          format: uuid
+        environment:
+          description: |
+            The environment that the tasks are run in.
+            This might be a container, or a git branch/sha
+          type: string
+        tasks:
+          description: |
+            The tasks to be run, in order.
+            This should be the name of an executable in your environment
+          type: array
+          items:
+            type: string
+        pinned:
+          description: pin this task-stack for future use
+          type: boolean
+          default: False
+        _href:
+          description: link to this TaskStack
+          readOnly: true
+          type: string
+
+    TaskRun:
+      properties:
+        uuid:
+          description: the unique identifier for the TaskRun
+          type: string
+          format: uuid
+        task:
+          description: The task that was run
+          type: string
+        task_stack:
+          description: The task stack that spawned this task
+          type: string
+          format: uri
+        pass:
+          description: A link to the pass that this task was run on
+          type: string
+          format: uri
+        start_time:
+          description: the start_time of the pass
+          type: string
+          format: date-time
+        end_time:
+          description: the end_time of the pass
+          type: string
+          format: date-time
+        exit_code:
+          description: the exit code of the process
+          type: integer
+        stdout:
+          description: a link to the stdout log
+          readOnly: true
+          type: string
+          format: uri
+        stderr:
+          description: a link to the stderr log
+          readOnly: true
+          type: string
+          format: uri
+        _href:
+          description: link to this TaskStack
+          readOnly: true
+          type: string
+          format: uri
+
+    Attributes:
+      type: object
+      additionalProperties:
+        type: string
+
+    Error:
+      description: schema for problem+json (RFC 7807)
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          description: A URI reference [RFC3986] that identifies the problem type.
+          type: string
+          format: uri
+        title:
+          description: A short, human-readable summary of the problem type.
+          type: string
+        status:
+          description: The HTTP status code ([RFC7231], Section 6) generated by the
+            origin server for this occurrence of the problem.
+          type: number
+        instance:
+          description: A URI reference that identifies the specific occurrence of the
+            problem.
+          type: string
+        detail:
+          description: A human-readable explanation specific to this occurrence of the
+            problem.
+          type: string
+        debugging:
+          description: Debugging information for DEV and QA environments.
+          type: string
+        invalid-params:
+          description: An array of validation errors.
+          type: array
+          items:
+            description: The validation error descriptor.
+            type: object
+            required:
+            - path
+            - name
+            - reason
+            properties:
+              path:
+                type: string
+              name:
+                type: string
+              reason:
+                type: string
+            additionalProperties: false

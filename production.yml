@@ -1,0 +1,67 @@
+version: '3.1'
+
+volumes:
+  production_postgres_data: {}
+  production_postgres_data_backups: {}
+  production_caddy: {}
+  production_frontend_build: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
+    image: missioncontrol_production_django
+    depends_on:
+      - postgres
+      - frontend
+    env_file:
+      - ./.envs/.production/.django
+      - ./.envs/.production/.postgres
+    environment:
+      - FRONTEND_BUILD_COMPLETE_FILE=/app/frontend/build/complete
+    command: /start
+    restart: always
+    volumes:
+      - production_frontend_build:/app/frontend/build
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+      args:
+        - NODE_ENV=production
+
+    command: build
+    environment:
+      - BUILD_COMPLETE_FILE=/app/build/complete
+    volumes:
+      - production_frontend_build:/app/build
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: missioncontrol_production_postgres
+    volumes:
+      - production_postgres_data:/var/lib/postgresql/data
+      - production_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.production/.postgres
+    restart: always
+
+  caddy:
+    build:
+      context: .
+      dockerfile: ./compose/production/caddy/Dockerfile
+    image: missioncontrol_production_caddy
+    depends_on:
+      - django
+    volumes:
+      - production_caddy:/root/.caddy
+    env_file:
+      - ./.envs/.production/.caddy
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    restart: always

@@ -1,0 +1,49 @@
+version: '3.1'
+
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: missioncontrol_local_django
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "8000:8000"
+    command: /start
+
+  frontend:
+    build:
+      context: ./frontend
+    image: missioncontrol_local_frontend
+    ports:
+      - "3000:3000"
+    command: start
+    depends_on:
+      - django
+    volumes:
+      - ./frontend:/app
+    environment:
+      - REACT_APP_PROXY=http://django:8000/
+      - BUILD_COMPLETE_FILE=/app/build/complete
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: missioncontrol_production_postgres
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+      - local_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+
