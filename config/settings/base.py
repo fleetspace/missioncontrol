@@ -279,3 +279,5 @@ def immutable_file_test(path, url):
 
 
 WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
+
+FILE_STORAGE_PATH = env.str('DJANGO_FILE_STORAGE_PATH')

@@ -53,3 +53,4 @@ EMAIL_PORT = 1025
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+FILE_STORAGE_PATH = 's3://bucketname/django-file-storage/'
