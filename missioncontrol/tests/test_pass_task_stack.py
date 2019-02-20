@@ -48,6 +48,24 @@ def test_satellite_task_stack_put(test_client, simple_sat, simple_gs,
     response = test_client.get(
         f"/api/v0/passes/{some_uuid}/task-stack/",
     )
+    assert response.status_code == 200, f"status code {response.status_code} not 200. Data: {response.get_data()}"
     ret = response.json
-    assert response.status_code == 200
     assert remove_read_only(ret) == simple_task_stack
+
+@pytest.mark.django_db
+def test_task_stack_no_exist(test_client, simple_task_stack, simple_pass,
+                             simple_sat, simple_gs, some_uuid):
+
+    def create_asset(asset_type, asset):
+        asset_hwid = asset["hwid"]
+        response = test_client.put(
+            f"/api/v0/{asset_type}s/{asset_hwid}/", json=asset)
+
+    create_asset('satellite', simple_sat)
+    create_asset('groundstation', simple_gs)
+
+    test_client.put(f'/api/v0/passes/{some_uuid}/', json=simple_pass)
+
+    response = test_client.get(f"/api/v0/passes/{some_uuid}/task-stack/")
+
+    assert response.status_code == 404, f"status code {response.status_code} not 404. Data: {response.get_data()}"

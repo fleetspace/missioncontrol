@@ -4,7 +4,7 @@ from home.models import TaskStack, Pass
 
 
 def get_task_stack(uuid):
-    return  Pass.objects.get(uuid=uuid).task_stack.to_dict()
+    return TaskStack.objects.get(pass__uuid=uuid).to_dict()
 
 
 def put(uuid, task_stack):
