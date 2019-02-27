@@ -867,6 +867,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+
   /accesses/:
     get:
       tags: ['accesses']
@@ -999,6 +1000,397 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  # Some of the structure here taken from
+  # https://github.com/planetlabs/datalake-api
+  # and modified to suit.
+  /files/:
+    get:
+      tags: ['files']
+      description: Search for files
+      operationId: v0.files.search
+      parameters:
+      - in: query
+        name: cid
+        description:
+            The content ID of a file (base32-encoded blake2b-16 multihash)
+        schema:
+          type: string
+          maxLength: 33
+          minLength: 33
+      - in: query
+        name: what
+        description:
+            Only return this type of file.
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: where
+        description:
+            Only return files from here.
+        schema:
+          type: string
+      - in: query
+        name: range_start
+        description:
+            Only return files with data after this start time.
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: range_end
+        description:
+            Only return files with data before this end time.
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: range_inclusive
+        description: |
+          If the time range should include accesses that partially overlap
+          the range_start or range_end.
+
+          * both - all accesses that overlap the range are returned
+          * start - accesses overlapping the range_start time are returned
+          * end - accesses overlapping the range_end time are returned
+          * neither - only returns accesses that are fully contained by the range
+        schema:
+          type: string
+          default: both
+          enum:
+            - start
+            - end
+            - both
+            - neither
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+      - in: query
+        name: order_by
+        description: |
+          Order the results by this field. Use `-` to reverse the ordering.
+        schema:
+          type: string
+          default: "-start"
+          enum:
+          - "start"
+          - "-start"
+      responses:
+        200:
+          description: A list of files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Files'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/cid/{cid}/:
+    get:
+      tags: ['files']
+      description: Search for file metadata by content id
+      operationId: v0.files.search_by_cid
+      parameters:
+      - in: path
+        name: cid
+        required: true
+        description: Only return metadata for this cid
+        schema:
+          type: string
+          minLength: 33
+          maxLength: 33
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+      responses:
+        200:
+          description: A list of files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Files'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /files/work-id/{work_id}/:
+    get:
+      tags: ['files']
+      description: Search for files as they relate to a work_id
+      operationId: v0.files.search_work_id
+      parameters:
+      - in: path
+        name: work_id
+        required: true
+        description:
+            Only return files with this work_id.
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: what
+        description:
+            Only return this type of file.
+        schema:
+          type: string
+      - in: query
+        name: where
+        description:
+            Only return files from here.
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+      responses:
+        200:
+          description: A list of files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Files'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/latest/{what}/{where}/:
+    get:
+      tags: ['files']
+      description: Get the latest 'what' from a 'where'
+      operationId: v0.files.get_latest
+      parameters:
+      - in: path
+        required: true
+        name: what
+        schema:
+          type: string
+      - in: path
+        required: true
+        name: where
+        schema:
+          type: string
+      responses:
+        200:
+          description: The details of a file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/presign/:
+    post:
+      tags: ['files']
+      description: Get the fields required for uploading a new file
+      operationId: v0.files.presign_upload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: file_meta
+              $ref: "#/components/schemas/File"
+      responses:
+        200:
+          description: The fields required for a file upload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedUpload'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/{uuid}/:
+    get:
+      tags: ['files']
+      description: Get the details of a file
+      operationId: v0.files.get
+      parameters:
+      - in: path
+        required: true
+        name: uuid
+        schema:
+          type: string
+      responses:
+        200:
+          description: The details of a file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['files']
+      description: Create a new file container
+      operationId: v0.files.put
+      parameters:
+      - in: path
+        required: true
+        name: uuid
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: file_meta
+              $ref: "#/components/schemas/File"
+      responses:
+        200:
+          description: The details of a file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /files/{uuid}/data/:
+    get:
+      tags: ['files']
+      description: Get the data contents of a file
+      operationId: v0.files.get_data
+      parameters:
+      - in: path
+        required: true
+        name: uuid
+        schema:
+          type: string
+      responses:
+        302:
+          description: A redirect to the URL to get the data from
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/content/{cid}/:
+    get:
+      tags: ['files']
+      description: Get file contents via the content id
+      operationId: v0.files.get_raw
+      parameters:
+      - in: path
+        required: true
+        name: cid
+        schema:
+          type: string
+      responses:
+        302:
+          description: A redirect to the URL to get the data from
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /datalake/admin/whats/:
+    get:
+      security:
+      - jwt: ['admins']
+      tags: ['admin']
+      description: list allowed datalake whats
+      operationId: v0.files_admin.search_whats
+      responses:
+        200:
+          description: A list of whats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /datalake/admin/whats/{what}/:
+    parameters:
+    - in: path
+      required: true
+      name: what
+      schema:
+        type: string
+    put:
+      tags: ['admin']
+      security:
+      - jwt: ['admins']
+      description: add allowed datalake whats
+      operationId: v0.files_admin.put_what
+      responses:
+        200:
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+        201:
+          description: Created
+          content:
+            text/plain:
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: ['admin']
+      security:
+      - jwt: ['admins']
+      description: add allowed datalake whats
+      operationId: v0.files_admin.delete_what
+      responses:
+        204:
+          description: No content
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   securitySchemes:
     jwt:
@@ -1223,54 +1615,66 @@ components:
           readOnly: true
           type: string
 
-    TaskRun:
-      properties:
-        uuid:
-          description: the unique identifier for the TaskRun
-          type: string
-          format: uuid
-        task:
-          description: The task that was run
-          type: string
-        task_stack:
-          description: The task stack that spawned this task
-          type: string
-          format: uri
-        pass:
-          description: A link to the pass that this task was run on
-          type: string
-          format: uri
-        start_time:
-          description: the start_time of the pass
-          type: string
-          format: date-time
-        end_time:
-          description: the end_time of the pass
-          type: string
-          format: date-time
-        exit_code:
-          description: the exit code of the process
-          type: integer
-        stdout:
-          description: a link to the stdout log
-          readOnly: true
-          type: string
-          format: uri
-        stderr:
-          description: a link to the stderr log
-          readOnly: true
-          type: string
-          format: uri
-        _href:
-          description: link to this TaskStack
-          readOnly: true
-          type: string
-          format: uri
-
     Attributes:
       type: object
       additionalProperties:
         type: string
+
+    Files:
+      type: array
+      items:
+        "$ref": "#/components/schemas/File"
+
+    File:
+      required:
+        - uuid
+        - cid
+        - what
+        - where
+        - start
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        cid:
+          type: string
+          minLength: 33
+          maxLength: 33
+        what:
+          type: string
+        where:
+          type: string
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+          nullable: true
+        work_id:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          description: the metadata version number
+          minimum: 1
+          maximum: 1
+
+    SignedUpload:
+      properties:
+        url:
+          description: The url to post to
+          type: string
+          format: uri
+          readOnly: true
+        url_fields:
+          description: form fields to add to the post request
+          type: object
+          readOnly: true
 
     Error:
       description: schema for problem+json (RFC 7807)

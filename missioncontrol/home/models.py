@@ -73,7 +73,7 @@ class Serializable(object):
         opts = self._meta
         data = {}
         for f in chain(opts.concrete_fields, opts.private_fields, opts.many_to_many):
-            if f.name is 'id':
+            if f.name == 'id':
                 continue
             data[f.name] = f.value_from_object(self)
         return data

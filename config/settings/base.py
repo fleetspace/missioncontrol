@@ -74,6 +74,7 @@ THIRD_PARTY_APPS = []
 LOCAL_APPS = [
     # Your stuff: custom apps go here
     'home',
+    'datalake',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -260,6 +261,11 @@ LOGGING = {
 }
 
 
+# Datalake
+# ------------------------------------------------------------------------------
+DATALAKE_STRICT_WHATS = True
+DATALAKE_STRICT_WORK_ID = True
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 EPHEM_DIR = os.path.abspath(os.path.join(APPS_DIR, 'ephemeris'))
@@ -279,3 +285,5 @@ def immutable_file_test(path, url):
 
 
 WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
+
+FILE_STORAGE_PATH = env.str('DJANGO_FILE_STORAGE_PATH')

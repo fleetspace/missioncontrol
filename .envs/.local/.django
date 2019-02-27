@@ -1,5 +1,8 @@
 # General
 # ------------------------------------------------------------------------------
+DATALAKE_STRICT_WHATS=False
+DATALAKE_STRICT_WORK_ID=False
 USE_DOCKER=yes
 IPYTHONDIR=/app/.ipython
 DJANGO_JWT_SECRET=ILIKEASCREThowlongdoesitNeedtTOBeHey
+DJANGO_FILE_STORAGE_PATH=/tmp/django-file-storage

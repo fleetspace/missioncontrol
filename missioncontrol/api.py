@@ -19,7 +19,7 @@ def object_does_not_exist(exception):
 
 
 def validation_error(exception):
-    problem = connexion.problem(400, "Validation Error", str(exception))
+    problem = connexion.problem(400, "Validation Error", exception.messages)
     return connexion.FlaskApi.get_response(problem)
 
 

@@ -23,6 +23,10 @@ python-jose = "*"
 tabulate = "*"
 django-environ = "*"
 python-dateutil = "*"
+boto3 = "*"
+datalake-common-dtkav = ">=0.29"
+py-multihash = "*"
+py-multibase = "*"
 
 [dev-packages]
 pylint = "*"
