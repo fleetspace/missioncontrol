@@ -10,12 +10,12 @@ def search(**kwargs):
     kwargs.pop('token_info', None)
     kwargs.pop('user', None)
 
-    start = kwargs.pop('start', None)
+    start = kwargs.pop('range_start', None)
     # Some data
     args = []
     if start:
         args.append(Q(end__gte=start) | (Q(end__isnull=True) & Q(start__gte=start)))
-    end = kwargs.pop('end', None)
+    end = kwargs.pop('range_end', None)
     if end:
         kwargs['start__lte'] = end
     results = S3File.objects.filter(*args, **kwargs)

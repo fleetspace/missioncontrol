@@ -1132,14 +1132,14 @@ paths:
           type: string
           format: uuid
       - in: query
-        name: start
+        name: range_start
         description:
             Only return files with data after (inclusive) this start time.
         schema:
           type: string
           format: date-time
       - in: query
-        name: end
+        name: range_end
         description:
             Only return files with data before (inclusive) this end time.
         schema:

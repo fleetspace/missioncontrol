@@ -71,8 +71,8 @@ def test_file_search_empty(test_client, some_uuid):
             'cid': 'nope',
             'where': 'nowhere',
             'task_run': some_uuid,
-            'start': "2018-11-25T00:00:00.000000Z",
-            'end': "2018-11-25T00:00:00.000000Z",
+            'range_start': "2018-11-25T00:00:00.000000Z",
+            'range_end': "2018-11-25T00:00:00.000000Z",
         })
     assert response.status_code == 200, response.get_data()
 
@@ -131,9 +131,11 @@ def test_file_search_after_put(boto_patch, test_client, simple_task_run,
     formatter = dateformat.DateFormat(created)
     expected['created'] = formatter.format(settings.DATETIME_FORMAT)
 
-    simple_file['end'] = simple_file['start']
+    search_query = simple_file.copy()
+    search_query['range_start'] = search_query.pop('start')
+    search_query['range_end'] = search_query['range_start']
 
-    response = test_client.get(f'/api/v0/files/', query_string=simple_file)
+    response = test_client.get(f'/api/v0/files/', query_string=search_query)
     assert response.status_code == 200, response.get_data()
 
     assert response.json == [expected]
@@ -141,6 +143,7 @@ def test_file_search_after_put(boto_patch, test_client, simple_task_run,
     # Make sure changing some of the searches *DON'T* find it.
     simple_query_false = simple_file.copy()
     simple_query_false['task_run'] = uuid.uuid4()
+    simple_query_false['range_start'] = simple_query_false.pop('start')
     response = test_client.get(f'/api/v0/files/', query_string=simple_query_false)
     assert response.status_code == 200, response.get_data()
     assert response.json == []
