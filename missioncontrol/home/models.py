@@ -327,6 +327,7 @@ class Pass(models.Model, Serializable):
     task_stack = models.ForeignKey(TaskStack, null=True, blank=True,
                                    on_delete=models.SET_NULL, to_field='uuid')
     attributes = HStoreField(null=True, blank=True)
+    celery_task_id = models.UUIDField(blank=True, null=True)
 
     objects = models.Manager()
     upcoming = UpcomingPasses()
@@ -420,6 +421,39 @@ class Pass(models.Model, Serializable):
 
     def access(self):
         return Access.from_id(self.access_id)
+
+    def save(self, *args, **kwargs):
+        """
+        Overridden to we can update the celery task
+        """
+        retval = super().save(*args, **kwargs)
+
+        if settings.PASS_TASK_URI is None:
+            logger.warn("No pass task URI, cannot schedule pass task.")
+            return retval
+
+        app = Celery('tasks', broker=settings.PASS_TASK_URI)
+
+        if self.celery_task_id:
+            # Revoke any previous task as we're setting a new one
+            AsyncResult(self.celery_task_id, app=app).revoke()
+
+        pass_length = (self.end_time - self.start_time).total_seconds()
+
+        result = app.send_task(
+            settings.PASS_TASK_NAME,
+
+            args=[self.uuid],
+            eta=self.start_time - timedelta(seconds=30),
+            soft_time_limit=pass_length + timedelta(seconds=60),
+            expires=self.end_time,
+        )
+
+        if result.id != self.celery_task_id:
+            self.celery_task_id = result.id
+            retval = super().save(*args, **kwargs)
+
+        return retval
 
     def __str__(self):
         return f"Pass: {self.uuid} - {self.satellite} - {self.groundstation} - {self.start_time}"

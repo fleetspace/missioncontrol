@@ -279,3 +279,6 @@ def immutable_file_test(path, url):
 
 
 WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
+
+PASS_TASK_URI = env.str('PASS_TASK_URI', None)
+PASS_TASK_NAME = env.str('PASS_TASK_NAME', 'jobs.pass_runner.tasks.start_pass')
