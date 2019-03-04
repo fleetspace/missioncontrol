@@ -4,7 +4,7 @@ from home.models import TaskRun, Pass, TaskStack
 
 
 def search(pass_uuid=None):
-    return [x.to_dict() for x in TaskRun.objects.all()]
+    return [x.to_dict() for x in TaskRun.objects.filter(task_pass=pass_uuid)]
 
 def get(pass_uuid=None, uuid=None):
     result = TaskRun.objects.get(uuid=uuid, task_pass=pass_uuid)

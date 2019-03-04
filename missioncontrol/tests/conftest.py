@@ -114,6 +114,16 @@ def simple_pass(simple_sat, simple_gs):
     }
 
 @pytest.fixture
+def simple_pass2(simple_sat, simple_gs):
+    return {
+        "uuid": "9f6236cc-6bce-4e78-b8fa-8de758c20d74",
+        "satellite": simple_sat["hwid"],
+        "groundstation": simple_gs["hwid"],
+        "start_time": "2019-11-25T00:00:00.000000Z",
+        "end_time": "2019-11-25T01:00:00.000000Z",
+    }
+
+@pytest.fixture
 def simple_task_run(simple_pass, simple_task_stack):
     return {
         "start_time": "2018-11-25T00:00:00.000000Z",
