@@ -12,7 +12,7 @@ from home.models import GroundStation, Satellite, Pass, TaskStack
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from v0.accesses import Access
-from v0.track import get_track_file
+from v0.track import get_track_file, DEF_STEP_S
 from v0.time import (add_seconds, now, utc, iso)
 
 
@@ -107,12 +107,13 @@ def patch(uuid, _pass):
     return pass_obj.to_dict()
 
 
-def get_track(uuid):
+def get_track(uuid, step=DEF_STEP_S):
     _pass = Pass.objects.get(uuid=uuid)
     access = _pass.access()
     access._start_time.tai = max(utc(_pass.start_time).tai, access.start_time.tai)
     access._end_time.tai = min(utc(_pass.end_time).tai, access.end_time.tai)
-    return get_track_file(access)
+
+    return get_track_file(access, step=step)
 
 
 def recalculate(uuid):

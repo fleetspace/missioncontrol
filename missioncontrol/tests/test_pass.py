@@ -264,6 +264,17 @@ def test_pass_create_and_get_track(test_client, simple_sat, simple_gs, some_uuid
     assert response.status_code == 200
     assert response.json
 
+    five_step_track = response.json
+
+    # Assumes default step is 5
+    response = test_client.get(
+        f"/api/v0/passes/{some_uuid}/track/?step=10",
+        headers=headers
+    )
+    assert response.status_code == 200, response.get_data()
+    # Subtract one for the edge point included, expected
+    assert len(response.json) - 1 == len(five_step_track) / 2
+
 
 @pytest.mark.django_db
 def test_pass_create_and_list_stale(test_client, simple_sat, simple_gs, some_uuid):

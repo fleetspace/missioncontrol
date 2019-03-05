@@ -664,6 +664,12 @@ paths:
         name: uuid
         schema:
            type: string
+      - in: query
+        name: step
+        description: The step size (in seconds) between each track point.
+        schema:
+          type: integer
+          default: 5
       responses:
         200:
           description: an altaz track for a given access id
@@ -966,6 +972,12 @@ paths:
         name: access_id
         schema:
            type: string
+      - in: query
+        name: step
+        description: The step size (in seconds) between each track point.
+        schema:
+          type: integer
+          default: 5
       responses:
         200:
           description: an altaz track for a given access id

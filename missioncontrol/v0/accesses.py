@@ -20,7 +20,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from home.models import GroundStation, Satellite, CachedAccess
-from v0.track import get_track_file
+from v0.track import get_track_file, DEF_STEP_S
 from v0.time import (add_seconds, now, make_timeseries, utc, iso, midpoint,
                      get_default_range, filter_range)
 
@@ -153,7 +153,7 @@ class Access(object):
             mid_time
         )
 
-    def iter_track(self, step=5):
+    def iter_track(self, step=DEF_STEP_S):
         times = make_timeseries(self._start_time, self._end_time, step)
         pair = self._satellite - self._groundstation
         for t in times:
@@ -444,11 +444,12 @@ def get_access(access_id):
     access = Access.from_id(access_id, base_url=base_url)
     return access.to_dict()
 
-def get_track(access_id):
+def get_track(access_id, step=DEF_STEP_S):
     base_url = request.url_root
     accepts = request.headers.get('accept', '')
     access = Access.from_id(access_id, base_url=base_url)
-    return get_track_file(access)
+
+    return get_track_file(access, step=step)
 
 
 class CachedAccessCalculator(AccessCalculator):
