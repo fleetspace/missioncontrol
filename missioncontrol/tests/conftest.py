@@ -140,7 +140,7 @@ def simple_file(some_hash):
         'what': 'stdout',
         'start': "2018-11-25T01:00:00.000000Z",
         'end': None,
-        'task_run': None,
+        'work_id': None,
         'path': '/some/path/for/files',
         'where': 'somewhere hidden',
     }
@@ -160,4 +160,8 @@ def yet_another_uuid():
 
 @pytest.fixture
 def some_hash():
+    return hashlib.blake2b(uuid4().bytes).hexdigest()
+
+@pytest.fixture
+def another_hash():
     return hashlib.blake2b(uuid4().bytes).hexdigest()

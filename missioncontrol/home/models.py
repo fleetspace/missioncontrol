@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.postgres.fields import JSONField, HStoreField
 from django.db import models
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone, dateformat
@@ -448,11 +448,10 @@ class TaskRun(models.Model, Serializable):
         return retval
 
     def _get_file_cid_if_exists(self, what):
-        try:
-            f = self.files.get(what=what)
-        except S3File.DoesNotExist:
-            return None
-        return f.cid
+        f = S3File.objects.filter(what=what, work_id=self.uuid).first()
+        if f:
+            return f.cid
+        return None
 
     @property
     def stdout(self):
@@ -486,8 +485,12 @@ class S3File(models.Model, Serializable):
                   'Can be blank if instantaneous file.',
         null=True, blank=True)
     created = ISODateTimeField(auto_now_add=True)
-    task_run = models.ForeignKey(TaskRun, to_field='uuid', related_name='files',
-                                 on_delete=models.PROTECT, null=True, blank=True)
+    work_id = models.TextField(null=True, blank=True)
+    version = models.IntegerField()
+
+    class Meta:
+        unique_together = ('version', 'what', 'where', 'work_id')
+        ordering = ('-version', )
 
     # s3://bucket/some_path
     @property
@@ -495,6 +498,7 @@ class S3File(models.Model, Serializable):
         path = settings.FILE_STORAGE_PATH
         if path.startswith('s3://'):
             return '/'.join(path.split('/')[3:])
+        # TODO
         raise NotImplementedError("Not yet implemented non s3 paths")
 
     @property
@@ -502,6 +506,7 @@ class S3File(models.Model, Serializable):
         path = settings.FILE_STORAGE_PATH
         if path.startswith('s3://'):
             return path.split('/')[2]
+        # TODO
         raise NotImplementedError("Not yet implemented non s3 paths")
 
     @property
@@ -528,6 +533,20 @@ class S3File(models.Model, Serializable):
         )
 
         return post
+
+    def save(self, *args, **kwargs):
+        # Set version if not given
+        if self.version is None:
+            prev_version = S3File.objects.filter(
+                what=self.what, where=self.where, work_id=self.work_id
+            ).aggregate(max_version=Max('version'))
+
+            if prev_version['max_version'] is None:
+                self.version = 1
+            else:
+                self.version = prev_version['max_version'] + 1
+
+        super().save(*args, **kwargs)
 
 
 

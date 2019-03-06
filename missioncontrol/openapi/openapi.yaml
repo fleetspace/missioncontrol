@@ -1125,9 +1125,9 @@ paths:
         schema:
           type: string
       - in: query
-        name: task_run
+        name: work_id
         description:
-            Only return files with this task_run uuid.
+            Only return files with this work_id uuid.
         schema:
           type: string
           format: uuid
@@ -1149,6 +1149,14 @@ paths:
         name: path
         description:
           Only return files with this path name
+        schema:
+          type: string
+      - in: query
+        name: version
+        description:
+          Only return files with this version number
+          # TODO add a flag to return just the latest
+          # version numbers
         schema:
           type: string
       responses:
@@ -1542,14 +1550,13 @@ components:
           type: string
           format: date-time
           nullable: true
-        task_run:
+        work_id:
           type: string
           format: uuid
           nullable: true
-        post_url_fields:
-          "$ref": "#/components/schemas/PostUrlFields"
+        version:
+          type: integer
           readOnly: true
-
 
     PostUrlFields:
       properties:

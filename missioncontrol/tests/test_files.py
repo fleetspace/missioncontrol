@@ -24,11 +24,10 @@ def test_file_put_get(boto3_mock, test_client, some_hash, simple_file):
 
     assert response.status_code == 200, response.get_data()
     expected = simple_file.copy()
-    expected['post_url_fields'] = post_values
-
 
     formatter = dateformat.DateFormat(created)
     expected['created'] = formatter.format(settings.DATETIME_FORMAT)
+    expected['version'] = 1
     assert response.json == expected
 
     try:
@@ -70,7 +69,7 @@ def test_file_search_empty(test_client, some_uuid):
             'what': 'a thing',
             'cid': 'nope',
             'where': 'nowhere',
-            'task_run': some_uuid,
+            'work_id': some_uuid,
             'range_start': "2018-11-25T00:00:00.000000Z",
             'range_end': "2018-11-25T00:00:00.000000Z",
         })
@@ -121,7 +120,7 @@ def test_file_search_after_put(boto_patch, test_client, simple_task_run,
         json=simple_task_run)
     assert response.status_code == 201, response.get_data()
 
-    simple_file['task_run'] = some_uuid
+    simple_file['work_id'] = some_uuid
     created = timezone.now()
     with patch('django.utils.timezone.now', return_value=created):
         response = test_client.put(f'/api/v0/files/{some_hash}/', json=simple_file)
@@ -130,6 +129,7 @@ def test_file_search_after_put(boto_patch, test_client, simple_task_run,
     expected = simple_file.copy()
     formatter = dateformat.DateFormat(created)
     expected['created'] = formatter.format(settings.DATETIME_FORMAT)
+    expected['version'] = 1
 
     search_query = simple_file.copy()
     search_query['range_start'] = search_query.pop('start')
@@ -142,7 +142,7 @@ def test_file_search_after_put(boto_patch, test_client, simple_task_run,
 
     # Make sure changing some of the searches *DON'T* find it.
     simple_query_false = simple_file.copy()
-    simple_query_false['task_run'] = uuid.uuid4()
+    simple_query_false['work_id'] = uuid.uuid4()
     simple_query_false['range_start'] = simple_query_false.pop('start')
     response = test_client.get(f'/api/v0/files/', query_string=simple_query_false)
     assert response.status_code == 200, response.get_data()
@@ -160,3 +160,25 @@ def test_file_search_after_put(boto_patch, test_client, simple_task_run,
     expected['stderr'] = None
 
     assert response.json == expected
+
+
+@pytest.mark.django_db
+def test_version_increment(test_client, simple_file, some_hash, another_hash):
+    created = timezone.now()
+    with patch('django.utils.timezone.now', return_value=created):
+        response = test_client.put(f'/api/v0/files/{some_hash}/', json=simple_file)
+    assert response.status_code == 201, response.get_data()
+    result1 = response.json
+
+    simple_file['cid'] = another_hash
+    with patch('django.utils.timezone.now', return_value=created):
+        response = test_client.put(f'/api/v0/files/{another_hash}/', json=simple_file)
+    assert response.status_code == 201, response.get_data()
+    result2 = response.json
+
+    assert result1.pop('version') == 1
+    assert result2.pop('version') == 2
+
+    assert result1.pop('cid') == some_hash
+    assert result2.pop('cid') == another_hash
+    assert result1 == result2
