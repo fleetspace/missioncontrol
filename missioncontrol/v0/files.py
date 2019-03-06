@@ -45,3 +45,12 @@ def put(cid, file_body):
     obj, created = S3File.objects.update_or_create(cid=cid, defaults=file_body)
     retval = obj.to_dict()
     return retval, 201 if created else 200
+
+def get_post_data_fields(cid):
+    if S3File.objects.filter(cid=cid).exists():
+        raise ProblemException(
+            status=409,
+            title='Conflict',
+            detail='This cid already exists in metadata',
+        )
+    return S3File.get_post_data_fields(cid=cid)

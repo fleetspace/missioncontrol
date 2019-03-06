@@ -1172,6 +1172,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /files/get_post_data_fields/:
+    get:
+      tags: ['files']
+      description: Get the fields required for uploading a new file
+      operationId: v0.files.get_post_data_fields
+      parameters:
+      - in: query
+        name: cid
+        required: true
+        description:
+            The content ID of a file (blake2b hash)
+        schema:
+          type: string
+      responses:
+        200:
+          description: The fields required for a file upload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDataFields'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /files/{cid}/:
     get:
       tags: ['files']
@@ -1558,7 +1584,7 @@ components:
           type: integer
           readOnly: true
 
-    PostUrlFields:
+    PostDataFields:
       properties:
         url:
           description: The url to post to

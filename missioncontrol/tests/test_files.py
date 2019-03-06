@@ -182,3 +182,26 @@ def test_version_increment(test_client, simple_file, some_hash, another_hash):
     assert result1.pop('cid') == some_hash
     assert result2.pop('cid') == another_hash
     assert result1 == result2
+
+# Still needs a database for the user setup.
+@patch('home.models.boto3')
+@pytest.mark.django_db
+def test_get_post_data_fields(boto3_mock, test_client, some_hash):
+    post_values = {
+        'url': 'https://test.example',
+        'url_fields': {},
+    }
+    boto3_mock.client.return_value.generate_presigned_post.return_value = post_values
+
+    response = test_client.get(
+        f'/api/v0/files/get_post_data_fields/',
+        query_string={'cid': some_hash}
+    )
+    assert response.status_code == 200, response.get_data()
+
+    assert response.json == post_values
+
+    boto3_mock.client.return_value.generate_presigned_post.assert_called_with(
+        Bucket=settings.FILE_STORAGE_PATH.split('/')[2],
+        Key=f'django-file-storage/{some_hash}',
+    )

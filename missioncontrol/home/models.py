@@ -525,11 +525,14 @@ class S3File(models.Model, Serializable):
 
         return url
 
-    def get_upload_url(self):
+    @classmethod
+    def get_post_data_fields(cls, **kwargs):
+        # Create the object but don't save it
+        obj = cls(**kwargs)
         s3 = boto3.client('s3')
         post = s3.generate_presigned_post(
-            Bucket=self.bucket,
-            Key=self.key,
+            Bucket=obj.bucket,
+            Key=obj.key,
         )
 
         return post
