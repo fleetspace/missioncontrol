@@ -293,3 +293,5 @@ missioncontrol/archive/
 missioncontrol/db.sqlite3
 
 .vscode
+
+.envrc
