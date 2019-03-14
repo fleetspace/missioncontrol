@@ -23,6 +23,10 @@ def validation_error(exception):
     return connexion.FlaskApi.get_response(problem)
 
 
+def not_implemented_error(exception):
+    problem = connexion.problem(501, "Not Implemented", str(exception))
+    return connexion.FlaskApi.get_response(problem)
+
 
 class CustomJSONEncoder(JSONEncoder):
 
@@ -45,6 +49,7 @@ def create_app():
     app.add_api('openapi.yaml', strict_validation=True)
     app.add_error_handler(ObjectDoesNotExist, object_does_not_exist)
     app.add_error_handler(ValidationError, validation_error)
+    app.add_error_handler(NotImplementedError, not_implemented_error)
     return app
 
 
