@@ -45,8 +45,6 @@ def test_file_put_get(boto3_mock, test_client, some_hash, simple_file):
         assert boto3_mock.mock_calls == []
 
 
-
-
 @patch('home.models.boto3')
 @pytest.mark.django_db
 def test_file_download(boto3_mock, test_client, simple_file, some_hash):
@@ -77,6 +75,7 @@ def test_file_search_empty(test_client, some_uuid):
 
     assert response.json == []
 
+
 @pytest.mark.django_db
 def test_file_search_one_key(test_client):
     response = test_client.get(
@@ -88,6 +87,7 @@ def test_file_search_one_key(test_client):
 
     assert response.json == []
 
+
 @pytest.mark.django_db
 def test_file_search_required_what(test_client):
     response = test_client.get(
@@ -98,6 +98,7 @@ def test_file_search_required_what(test_client):
     assert response.status_code == 400, response.get_data()
 
     assert response.json['detail'] == "Missing query parameter 'what'"
+
 
 @patch('home.models.boto3')
 @pytest.mark.django_db
@@ -183,6 +184,7 @@ def test_version_increment(test_client, simple_file, some_hash, another_hash):
     assert result2.pop('cid') == another_hash
     assert result1 == result2
 
+
 # Still needs a database for the user setup.
 @patch('home.models.boto3')
 @pytest.mark.django_db
@@ -205,3 +207,13 @@ def test_get_post_data_fields(boto3_mock, test_client, some_hash):
         Bucket=settings.FILE_STORAGE_PATH.split('/')[2],
         Key=f'django-file-storage/{some_hash}',
     )
+
+
+@pytest.mark.django_db
+def test_get_post_data_fields_local_not_implemented(settings, test_client, some_hash):
+    settings.FILE_STORAGE_PATH = '/tmp/'
+    response = test_client.get(
+        f'/api/v0/files/get_post_data_fields/',
+        query_string={'cid': some_hash}
+    )
+    assert response.status_code == 501, response.get_data()
