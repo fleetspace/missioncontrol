@@ -1,9 +1,12 @@
-import pytest
+import hashlib
 from base64 import b64encode
 from uuid import uuid4
 
+import pytest
+
 from flask.testing import FlaskClient
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class AuthorizedClient(FlaskClient):
     def __init__(self, *args, **kwargs):
@@ -103,12 +106,44 @@ def simple_sat():
 @pytest.fixture
 def simple_pass(simple_sat, simple_gs):
     return {
+        "uuid": "9f6236cc-6bce-4e78-b8fa-8de758c20d73",
         "satellite": simple_sat["hwid"],
         "groundstation": simple_gs["hwid"],
         "start_time": "2018-11-25T00:00:00.000000Z",
         "end_time": "2018-11-25T01:00:00.000000Z",
     }
 
+@pytest.fixture
+def simple_pass2(simple_sat, simple_gs):
+    return {
+        "uuid": "9f6236cc-6bce-4e78-b8fa-8de758c20d74",
+        "satellite": simple_sat["hwid"],
+        "groundstation": simple_gs["hwid"],
+        "start_time": "2019-11-25T00:00:00.000000Z",
+        "end_time": "2019-11-25T01:00:00.000000Z",
+    }
+
+@pytest.fixture
+def simple_task_run(simple_pass, simple_task_stack):
+    return {
+        "start_time": "2018-11-25T00:00:00.000000Z",
+        "end_time": "2018-11-25T01:00:00.000000Z",
+        "exit_code": -1,
+        "task": "A task name",
+        "task_stack": simple_task_stack["uuid"],
+    }
+
+@pytest.fixture
+def simple_file(some_hash):
+    return {
+        'cid': some_hash,
+        'what': 'stdout',
+        'start': "2018-11-25T01:00:00.000000Z",
+        'end': None,
+        'work_id': None,
+        'path': '/some/path/for/files',
+        'where': 'somewhere hidden',
+    }
 
 @pytest.fixture
 def some_uuid():
@@ -118,3 +153,15 @@ def some_uuid():
 @pytest.fixture
 def another_uuid():
     return str(uuid4())
+
+@pytest.fixture
+def yet_another_uuid():
+    return str(uuid4())
+
+@pytest.fixture
+def some_hash():
+    return hashlib.blake2b(uuid4().bytes).hexdigest()
+
+@pytest.fixture
+def another_hash():
+    return hashlib.blake2b(uuid4().bytes).hexdigest()

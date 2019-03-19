@@ -64,3 +64,12 @@ class TaskStackAdmin(admin.ModelAdmin):
         'tasks'
     )
     list_filter = ('environment',)
+
+@admin.register(models.TaskRun)
+class TaskRunAdmin(admin.ModelAdmin):
+    list_display = (
+        'uuid',
+        'task',
+        'task_stack',
+        'task_pass',
+    )

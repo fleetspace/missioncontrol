@@ -13,12 +13,13 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.postgres.fields import JSONField, HStoreField
 from django.db import models
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone, dateformat
 from pytz import UTC
 from skyfield.api import Topos, EarthSatellite
+import boto3
 
 from v0.time import iso, utc
 
@@ -423,6 +424,133 @@ class Pass(models.Model, Serializable):
 
     def __str__(self):
         return f"Pass: {self.uuid} - {self.satellite} - {self.groundstation} - {self.start_time}"
+
+
+
+
+class TaskRun(models.Model, Serializable):
+    uuid = models.UUIDField(default=uuid4, unique=True)
+    task = models.TextField()
+    task_stack = models.ForeignKey(TaskStack, on_delete=models.PROTECT, to_field='uuid')
+    task_pass = models.ForeignKey(Pass, on_delete=models.PROTECT, db_column='pass', to_field='uuid')
+    start_time = ISODateTimeField()
+    end_time = ISODateTimeField()
+    exit_code = models.IntegerField()
+
+    def to_dict(self):
+        # Because connexion expects the 'pass' key, but it's a keyword
+        retval = super().to_dict()
+        retval['pass'] = retval.pop('task_pass')
+        # TODO possibly generalize this higher using a property on `Meta`
+        retval['stdout'] = self.stdout
+        retval['stderr'] = self.stderr
+
+        return retval
+
+    def _get_file_cid_if_exists(self, what):
+        f = S3File.objects.filter(what=what, work_id=self.uuid).first()
+        if f:
+            return f.cid
+        return None
+
+    @property
+    def stdout(self):
+        # return [x.to_dict() for x in self.files.all()]
+        return self._get_file_cid_if_exists('stdout')
+
+    @property
+    def stderr(self):
+        return self._get_file_cid_if_exists('stderr')
+
+    def __repr__(self):
+        print(self.task_pass)
+        return "<TaskRun: {uuid} - {task}>".format(**self.__dict__)
+
+    def __str__(self):
+        return self.__repr__()
+
+
+
+class S3File(models.Model, Serializable):
+    cid = models.CharField(max_length=128, unique=True)
+    what = models.TextField()
+    where = models.TextField()
+    path = models.TextField(null=True, blank=True)
+    start = ISODateTimeField(
+        help_text='The time of the first event in the file. '
+                  'If instantaneous, set this and leave end as null',
+        default=timezone.now)
+    end = ISODateTimeField(
+        help_text='The time of the last event in the file. '
+                  'Can be blank if instantaneous file.',
+        null=True, blank=True)
+    created = ISODateTimeField(auto_now_add=True)
+    work_id = models.TextField(null=True, blank=True)
+    version = models.IntegerField()
+
+    class Meta:
+        unique_together = ('version', 'what', 'where', 'work_id')
+        ordering = ('-version', )
+
+    # s3://bucket/some_path
+    @property
+    def prefix(self):
+        path = settings.FILE_STORAGE_PATH
+        if path.startswith('s3://'):
+            return '/'.join(path.split('/')[3:])
+        # TODO
+        raise NotImplementedError("Not yet implemented non s3 paths")
+
+    @property
+    def bucket(self):
+        path = settings.FILE_STORAGE_PATH
+        if path.startswith('s3://'):
+            return path.split('/')[2]
+        # TODO
+        raise NotImplementedError("Not yet implemented non s3 paths")
+
+    @property
+    def key(self):
+        return f'{self.prefix}{self.cid}'
+
+    def get_download_url(self):
+        s3 = boto3.client('s3')
+        url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': self.bucket,
+                'Key': self.key,
+            }
+        )
+
+        return url
+
+    @classmethod
+    def get_post_data_fields(cls, **kwargs):
+        # Create the object but don't save it
+        obj = cls(**kwargs)
+        s3 = boto3.client('s3')
+        post = s3.generate_presigned_post(
+            Bucket=obj.bucket,
+            Key=obj.key,
+        )
+
+        return post
+
+    def save(self, *args, **kwargs):
+        # Set version if not given
+        if self.version is None:
+            prev_version = S3File.objects.filter(
+                what=self.what, where=self.where, work_id=self.work_id
+            ).aggregate(max_version=Max('version'))
+
+            if prev_version['max_version'] is None:
+                self.version = 1
+            else:
+                self.version = prev_version['max_version'] + 1
+
+        super().save(*args, **kwargs)
+
 
 
 class CachedAccess(models.Model):

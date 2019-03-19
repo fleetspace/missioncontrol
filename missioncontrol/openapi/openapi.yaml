@@ -867,6 +867,102 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /passes/{pass_uuid}/task-runs/:
+    get:
+      tags: ['passes', 'task-runs']
+      description: |
+        Get a list of task runs for this pass
+      operationId: v0.pass_task_run.search
+      parameters:
+        - in: path
+          required: true
+          name: pass_uuid
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: A list of task runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRuns"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /passes/{pass_uuid}/task-runs/{uuid}/:
+    get:
+      tags: ['passes', 'task-runs']
+      description: Get a task run from this pass
+      operationId: v0.pass_task_run.get
+      parameters:
+        - in: path
+          required: true
+          name: pass_uuid
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          required: true
+          name: uuid
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: A task run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRun"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['passes', 'task-runs']
+      description: Put a new task run
+      operationId: v0.pass_task_run.put
+      parameters:
+        - in: path
+          required: true
+          name: pass_uuid
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          required: true
+          name: uuid
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: task_run
+              $ref: "#/components/schemas/TaskRun"
+      responses:
+        200:
+          description: A task run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskRun"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
   /accesses/:
     get:
       tags: ['accesses']
@@ -993,6 +1089,182 @@ paths:
                 type: array
                 items:
                   type: object
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  # Some of the structure here taken from
+  # https://github.com/planetlabs/datalake-api
+  # and modified to suit.
+  # Copyright 2016 Planet Labs Inc.
+  /files/:
+    get:
+      tags: ['files']
+      description: Search for files
+      operationId: v0.files.search
+      parameters:
+      - in: query
+        name: cid
+        description:
+            The content ID of a file (blake2b hash)
+        schema:
+          type: string
+      - in: query
+        name: what
+        description:
+            Only return files from here.
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: where
+        description:
+            Only return files from here.
+        schema:
+          type: string
+      - in: query
+        name: work_id
+        description:
+            Only return files with this work_id uuid.
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: range_start
+        description:
+            Only return files with data after (inclusive) this start time.
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: range_end
+        description:
+            Only return files with data before (inclusive) this end time.
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: path
+        description:
+          Only return files with this path name
+        schema:
+          type: string
+      - in: query
+        name: version
+        description:
+          Only return files with this version number
+          # TODO add a flag to return just the latest
+          # version numbers
+        schema:
+          type: string
+      responses:
+        200:
+          description: A list of files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Files'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /files/get_post_data_fields/:
+    get:
+      tags: ['files']
+      description: Get the fields required for uploading a new file
+      operationId: v0.files.get_post_data_fields
+      parameters:
+      - in: query
+        name: cid
+        required: true
+        description:
+            The content ID of a file (blake2b hash)
+        schema:
+          type: string
+      responses:
+        200:
+          description: The fields required for a file upload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDataFields'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /files/{cid}/:
+    get:
+      tags: ['files']
+      description: Get the details of a file
+      operationId: v0.files.get
+      parameters:
+      - in: path
+        required: true
+        name: cid
+        schema:
+          type: string
+      responses:
+        200:
+          description: The details of a file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: ['files']
+      description: Create a new file container
+      operationId: v0.files.put
+      parameters:
+      - in: path
+        required: true
+        name: cid
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: file_body
+              $ref: "#/components/schemas/File"
+      responses:
+        200:
+          description: The details of a file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /files/{cid}/data/:
+    get:
+      tags: ['files']
+      description: Get the data contents of a file
+      operationId: v0.files.get_data
+      parameters:
+      - in: path
+        required: true
+        name: cid
+        schema:
+          type: string
+      responses:
+        302:
+          description: A redirect to the URL to get the data from
         default:
           description: unexpected error
           content:
@@ -1223,6 +1495,11 @@ components:
           readOnly: true
           type: string
 
+    TaskRuns:
+      type: array
+      items:
+        "$ref": "#/components/schemas/TaskRun"
+
     TaskRun:
       properties:
         uuid:
@@ -1235,7 +1512,7 @@ components:
         task_stack:
           description: The task stack that spawned this task
           type: string
-          format: uri
+          format: uuid
         pass:
           description: A link to the pass that this task was run on
           type: string
@@ -1252,17 +1529,15 @@ components:
           description: the exit code of the process
           type: integer
         stdout:
-          description: a link to the stdout log
+          description: a cid of the stdout log file
           readOnly: true
           type: string
-          format: uri
         stderr:
-          description: a link to the stderr log
+          description: a cid of the stderr log file
           readOnly: true
           type: string
-          format: uri
         _href:
-          description: link to this TaskStack
+          description: link to this TaskRun
           readOnly: true
           type: string
           format: uri
@@ -1271,6 +1546,55 @@ components:
       type: object
       additionalProperties:
         type: string
+
+    Files:
+      type: array
+      items:
+        "$ref": "#/components/schemas/File"
+
+    File:
+      required:
+        - cid
+        - what
+        - where
+        - start
+      properties:
+        cid:
+          type: string
+        what:
+          type: string
+        where:
+          type: string
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+          nullable: true
+        work_id:
+          type: string
+          format: uuid
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+
+    PostDataFields:
+      properties:
+        url:
+          description: The url to post to
+          type: string
+          format: uri
+          readOnly: true
+        url_fields:
+          description: Fields to add to the post request
+          type: object
+          readOnly: true
 
     Error:
       description: schema for problem+json (RFC 7807)
