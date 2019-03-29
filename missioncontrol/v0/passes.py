@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from base64 import b64encode, b64decode
 from collections import namedtuple
@@ -13,7 +14,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from v0.accesses import Access
 from v0.track import get_track_file, DEF_STEP_S
-from v0.time import (add_seconds, now, utc, iso)
+from v0.time import utc
 
 
 TWO_DAYS_S = 2 * 24 * 60 * 60
@@ -39,24 +40,24 @@ def search(limit=100, range_start=None, range_end=None, range_inclusive='both',
 
     # set the default time range, if no range is specified
     if range_start is None and range_end is None:
-        range_start = now()
-        range_end = add_seconds(range_start, TWO_DAYS_S)
+        range_start = utc("now")
+        range_end = range_start + datetime.timedelta(days=2)
 
     # filter the start of the range
     if range_start is not None:
         range_start = utc(range_start)
         if range_inclusive in ['end', 'neither']:
-            passes = passes.filter(start_time__gte=range_start.utc_datetime())
+            passes = passes.filter(start_time__gte=range_start)
         else:
-            passes = passes.filter(end_time__gte=range_start.utc_datetime())
+            passes = passes.filter(end_time__gte=range_start)
 
     # filter the end of the range
     if range_end is not None:
         range_end = utc(range_end)
         if range_inclusive in ['start', 'neither']:
-            passes = passes.filter(end_time__lte=range_end.utc_datetime())
+            passes = passes.filter(end_time__lte=range_end)
         else:
-            passes = passes.filter(start_time__lte=range_end.utc_datetime())
+            passes = passes.filter(start_time__lte=range_end)
 
     if not show_stale:
         passes = passes.exclude(Q(scheduled_on_gs=False) &
@@ -109,10 +110,7 @@ def patch(uuid, _pass):
 
 def get_track(uuid, step=DEF_STEP_S):
     _pass = Pass.objects.get(uuid=uuid)
-    access = _pass.access()
-    access._start_time.tai = max(utc(_pass.start_time).tai, access.start_time.tai)
-    access._end_time.tai = min(utc(_pass.end_time).tai, access.end_time.tai)
-
+    access = _pass.access().clip(_pass.start_time, _pass.end_time)
     return get_track_file(access, step=step)
 
 
@@ -131,8 +129,8 @@ def put(uuid, _pass):
         access = Access.from_id(access_id)
         sat_obj = access.satellite
         gs_obj = access.groundstation
-        _pass.setdefault("start_time", iso(access.start_time))
-        _pass.setdefault("end_time", iso(access.end_time))
+        _pass.setdefault("start_time", utc(access.start_time))
+        _pass.setdefault("end_time", utc(access.end_time))
     except KeyError:
         # user provided all required fields instead of access id
         sat_hwid = _pass["satellite"]
