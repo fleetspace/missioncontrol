@@ -20,8 +20,6 @@ from django.utils import timezone, dateformat
 from pytz import UTC
 from skyfield.api import Topos, EarthSatellite
 
-from v0.time import iso, utc
-
 GS_RESET_TIME_S = 90  # FIXME this is a wag
 
 logger = logging.getLogger(__name__)
@@ -459,7 +457,7 @@ class CachedAccess(models.Model):
         }
 
     def to_access(self, base_url=''):
-        return Access(utc(self.start_time), utc(self.end_time),
+        return Access(self.start_time, self.end_time,
                       self.satellite, self.groundstation,
                       self.max_alt, base_url=base_url)
 

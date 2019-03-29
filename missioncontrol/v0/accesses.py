@@ -1,10 +1,13 @@
 import json
 import base64
+import copy
 import zlib
 import math
 import logging
 import hashlib
+import datetime
 
+from astropy.time import Time
 from numpy import ediff1d, arange, vectorize
 from scipy import optimize
 from Crypto.Cipher import AES
@@ -21,12 +24,11 @@ from django.conf import settings
 
 from home.models import GroundStation, Satellite, CachedAccess
 from v0.track import get_track_file, DEF_STEP_S
-from v0.time import (add_seconds, now, make_timeseries, utc, iso, midpoint,
-                     get_default_range, filter_range)
 
 AES_KEY = "bananasinpajamas"
 AES_IV = "banana1orbanana2"  # must be 16 bytes
 
+TWO_DAYS_S = 2 * 24 * 60 * 60
 JD_MIN = 1.0 / 24.0 / 60.0
 JD_SEC = JD_MIN / 60.0
 TAU = 2.0 * math.pi
@@ -35,6 +37,121 @@ AltAz = namedtuple('AltAz', ['time', 'altitude', 'azimuth'])
 
 load = Loader(settings.EPHEM_DIR)
 
+##
+## Note, Accesses uses Skyfield Time, which is stored as 64 bit floats of
+##   Julian time.
+##
+##   This is a trade between performance and precision (required here), and
+##   python native datetimes used by django, and common elsewhere.
+##
+##   Note that Skyfield Time objects have a precision of around 20us.
+##   https://rhodesmill.org/skyfield/time.html#time-precision-is-around-20-1-s
+##
+
+def timescale_functions():
+    """ skyfield requires a "timescale" object that is used for things like
+        leap seconds. we want to initialize it once, but avoid making it
+        a global variable.
+        This closure exposes two functions that rely on a global timescale,
+    """
+    timescale = load.timescale()
+
+    def now():
+        return timescale.now()
+
+    def add_seconds(t, s):
+        """
+        There's no easier way to add seconds to a Time object :(
+        """
+        return timescale.utc(*map(sum, zip(t.utc, (0, 0, 0, 0, 0, s))))
+
+    def tt(t):
+        """ do whatever it takes to make time into skyfield
+        """
+        if t == "now":
+            return now()
+        if isinstance(t, str):
+            t = timescale.from_astropy(Time(t, format='isot'))
+        if isinstance(t, tuple):
+            t = timescale.utc(*t)
+        if isinstance(t, datetime.datetime):
+            t = timescale.utc(t)
+        return t
+
+    def tt_iso(t):
+        t = tt(t)
+        return t.utc_iso(places=6)
+
+    def tt_midpoint(start_time, end_time):
+        start_time = tt(start_time)
+        end_time = tt(end_time)
+        mid_time = timescale.tai_jd(
+            ((start_time.tai + end_time.tai) / 2)
+        )
+        return mid_time
+
+    return add_seconds, now, tt, tt_iso, tt_midpoint
+
+
+add_seconds, now, tt, tt_iso, tt_midpoint = timescale_functions()
+
+
+def make_timeseries(start, end, step):
+    """ return a list of times from start to end.
+        each step is 'step' seconds after the previous time.
+    """
+    if end.tt < start.tt:
+        raise RuntimeError("end cannot be before start")
+
+    t = start
+    ts = [t]
+    while t.tt <= end.tt:
+        t = add_seconds(t, step)
+        ts += [t]
+    return ts
+
+
+def get_default_range(range_start=None, range_end=None):
+    """ cast to internal time, set default range_start and range_end times
+    """
+    if range_start is None:
+        range_start = now()
+    else:
+        range_start = tt(range_start)
+    if range_end is None:
+        range_end = add_seconds(range_start, TWO_DAYS_S)
+    else:
+        range_end = tt(range_end)
+
+    return range_start, range_end
+
+
+def filter_range(windows, range_start, range_end, range_inclusive):
+    """ given a list of time windows (object that have start and end times),
+        filters out items base on the range_inclusive criteria:
+          start - the start of the range is inclusive
+          end - the end of the range is inclusive
+          neither - all windows must fit completely within range
+          both (default) - windows that overlap with range are returned
+
+        this is useful for pagination, when you may want to set either end to
+        inclusive depending on the direction of the page so as to not get
+        duplicate items.
+    """
+    # filter the start of the range
+    if range_inclusive in ['end', 'neither']:
+        windows = filter(lambda w: tt(w.start_time).tt >= range_start.tt, windows)
+    else:
+        windows = filter(lambda w: tt(w.end_time).tt >= range_start.tt, windows)
+
+    # filter the end of the range
+    if range_inclusive in ['start', 'neither']:
+        windows = filter(lambda w: tt(w.end_time).tt <= range_end.tt, windows)
+    else:
+        windows = filter(lambda w: tt(w.start_time).tt <= range_end.tt, windows)
+
+    return windows
+
 
 class Access(object):
     """ An Access is when a Groundstation has visibility to a Satellite
@@ -42,8 +159,8 @@ class Access(object):
     _timescale = load.timescale()
 
     def __init__(self, start_time, end_time, sat, gs, max_alt, base_url=""):
-        self._start_time = start_time
-        self._end_time = end_time
+        self._start_time = tt(start_time)
+        self._end_time = tt(end_time)
         self._satellite = sat
         self._groundstation = gs
         self._max_alt = max_alt
@@ -57,6 +174,17 @@ class Access(object):
     def end_time(self):
         return self._end_time
 
+    def clone(self):
+        return copy.copy(self)
+
+    def clip(self, start, end):
+        """ returns a new access, with clipped start and end times
+        """
+        access = self.clone()
+        access._start_time.tai = max(tt(start).tai, access.start_time.tai)
+        access._end_time.tai = min(tt(end).tai, access.end_time.tai)
+        return access
+
     @property
     def json(self):
         return json.dumps(self.to_dict(), indent=4)
@@ -69,11 +197,11 @@ class Access(object):
 
     @classmethod
     def from_time(cls, t, sat, gs, base_url=""):
-        t = utc(t)
+        t = tt(t)
 
         if not Access.is_above_horizon(sat, gs, t):
             raise ObjectDoesNotExist(
-                f"Access could not be found between {sat}, {gs} at {iso(t)}"
+                f"Access could not be found between {sat}, {gs} at {tt_iso(t)}"
             )
 
         start_time = Access.find_start(sat, gs, t)
@@ -84,7 +212,7 @@ class Access(object):
 
     @classmethod
     def from_overlap(cls, start_time, end_time, sat, gs):
-        mid_time = midpoint(start_time, end_time)
+        mid_time = tt_midpoint(start_time, end_time)
         return cls.from_time(mid_time, sat, gs)
 
     @staticmethod
@@ -118,7 +246,6 @@ class Access(object):
         access_id = base64.urlsafe_b64encode(encrypted)
         return access_id.decode()
 
-
     @classmethod
     def decode_access_id(cls, access_id):
         """
@@ -134,7 +261,7 @@ class Access(object):
         times = [int(c) for c in wrap(time_tuple, 2)]
         # we only use the 2 digit year, so add 2000 back
         times[0] += 2000
-        time = utc(tuple(times))
+        time = tt(tuple(times))
         return int(sat_id), int(gs_id), time
 
     @classmethod
@@ -146,7 +273,7 @@ class Access(object):
 
     @property
     def access_id(self):
-        mid_time = midpoint(self.start_time, self.end_time)
+        mid_time = tt_midpoint(self.start_time, self.end_time)
         return self.encode_access_id(
             self._satellite.id,
             self._groundstation.id,
@@ -159,7 +286,7 @@ class Access(object):
         for t in times:
             altitude, azimuth, _range = pair.at(t).altaz()
             yield {
-                "time": iso(t),
+                "time": tt_iso(t),
                 "azimuth": azimuth.degrees,
                 "altitude": altitude.degrees,
                 "range": _range.km
@@ -265,8 +392,8 @@ class Access(object):
             "id": self.access_id,
             "satellite": self.satellite.hwid,
             "groundstation": self.groundstation.hwid,
-            "start_time": iso(self.start_time),
-            "end_time": iso(self.end_time),
+            "start_time": tt_iso(self.start_time),
+            "end_time": tt_iso(self.end_time),
             "max_alt": self.max_alt,
             "_href": urljoin(
                 self._base_url,
@@ -504,8 +631,8 @@ class CachedAccessCalculator(AccessCalculator):
                     defaults={
                         "satellite": sat,
                         "groundstation": gs,
-                        "start_time": iso(access.start_time),
-                        "end_time": iso(access.end_time),
+                        "start_time": tt_iso(access.start_time),
+                        "end_time": tt_iso(access.end_time),
                         "max_alt": access.max_alt,
                         "placeholder": False
                     }
