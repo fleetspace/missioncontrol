@@ -20,6 +20,7 @@ services:
     ports:
       - "8000:8000"
     command: /start
+    restart: always
 
   frontend:
     build:
