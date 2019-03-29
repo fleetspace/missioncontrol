@@ -22,6 +22,7 @@ scipy = "*"
 python-jose = "*"
 tabulate = "*"
 django-environ = "*"
+python-dateutil = "*"
 
 [dev-packages]
 pylint = "*"
