@@ -69,7 +69,7 @@ def test_pass_create_from_times(test_client, simple_sat, simple_gs, some_uuid):
     assert response.status_code == 200
     assert len(response.json) == 1
     assert response.json[0]["uuid"] == some_uuid
- 
+
 
 @pytest.mark.django_db
 def test_pass_create_and_patch(test_client, simple_sat, simple_gs, some_uuid):
@@ -115,7 +115,7 @@ def test_pass_create_and_patch(test_client, simple_sat, simple_gs, some_uuid):
 
 
 @pytest.mark.django_db
-def test_pass_create_conflict_from_put(test_client, simple_sat, simple_gs, some_uuid,
+def test_pass_create_conflict_from_put_diff_gc(test_client, simple_sat, simple_gs, some_uuid,
                               another_uuid):
     headers = {"content-type": "application/json"}
 
@@ -127,11 +127,22 @@ def test_pass_create_conflict_from_put(test_client, simple_sat, simple_gs, some_
             data=json.dumps(asset)
         )
 
+    simple_sat_2 = simple_sat.copy()
+    simple_sat_2['hwid'] = 'aSecondSatHere'
+
     create_asset('satellite', simple_sat)
+    create_asset('satellite', simple_sat_2)
     create_asset('groundstation', simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
+        "groundstation": simple_gs["hwid"],
+        "start_time": "2018-11-25T00:00:00Z",
+        "end_time": "2018-11-25T01:00:00Z",
+    }
+
+    _pass2 = {
+        "satellite": simple_sat_2["hwid"],
         "groundstation": simple_gs["hwid"],
         "start_time": "2018-11-25T00:00:00Z",
         "end_time": "2018-11-25T01:00:00Z",
@@ -149,7 +160,59 @@ def test_pass_create_conflict_from_put(test_client, simple_sat, simple_gs, some_
     response = test_client.put(
         f"/api/v0/passes/{another_uuid}/",
         headers=headers,
+        data=json.dumps(_pass2)
+    )
+    assert response.status_code == 409
+    assert len(response.json["conflicts"]) == 1
+
+
+@pytest.mark.django_db
+def test_pass_create_conflict_from_put_diff_sat(test_client, simple_sat, simple_gs, some_uuid,
+                              another_uuid):
+    headers = {"content-type": "application/json"}
+
+    def create_asset(asset_type, asset):
+        asset_hwid = asset["hwid"]
+        response = test_client.put(
+            f"/api/v0/{asset_type}s/{asset_hwid}/",
+            headers=headers,
+            data=json.dumps(asset)
+        )
+
+    second_sat = simple_sat.copy()
+    second_sat['hwid'] = 'secondsat'
+
+    create_asset('satellite', simple_sat)
+    create_asset('satellite', second_sat)
+    create_asset('groundstation', simple_gs)
+
+    _pass = {
+        "satellite": simple_sat["hwid"],
+        "groundstation": simple_gs["hwid"],
+        "start_time": "2018-11-25T00:00:00Z",
+        "end_time": "2018-11-25T01:00:00Z",
+    }
+
+    _pass2 = {
+        "satellite": second_sat["hwid"],
+        "groundstation": simple_gs["hwid"],
+        "start_time": "2018-11-25T00:00:00Z",
+        "end_time": "2018-11-25T01:00:00Z",
+    }
+
+    # create one
+    response = test_client.put(
+        f"/api/v0/passes/{some_uuid}/",
+        headers=headers,
         data=json.dumps(_pass)
+    )
+    assert response.status_code == 201
+
+    # create conflict
+    response = test_client.put(
+        f"/api/v0/passes/{another_uuid}/",
+        headers=headers,
+        data=json.dumps(_pass2)
     )
     assert response.status_code == 409
     assert len(response.json["conflicts"]) == 1
