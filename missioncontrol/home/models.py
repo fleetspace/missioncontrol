@@ -354,7 +354,7 @@ class Pass(models.Model, Serializable):
         same_gs = Q(groundstation=self.groundstation)
         different_id = ~Q(uuid=self.uuid)
         overlapping_pass_qs = Pass.objects.filter(
-            same_sat & same_gs & different_id & not_stale &
+            (same_gs | same_sat) & different_id & not_stale &
             (start_overlaps_qs | end_overlaps_qs)
         )
         overlaps = overlapping_pass_qs.all()
