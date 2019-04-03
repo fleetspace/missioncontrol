@@ -11,7 +11,7 @@ from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.contrib.postgres.fields import JSONField, HStoreField
-from django.db import models
+from django.db import models, transaction
 from django import forms
 from django.db.models import Q
 from django.db.models.signals import pre_save
@@ -24,6 +24,45 @@ GS_RESET_TIME_S = 90  # FIXME this is a wag
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+
+LOCK_MODES = (
+    'ACCESS SHARE',
+    'ROW SHARE',
+    'ROW EXCLUSIVE',
+    'SHARE UPDATE EXCLUSIVE',
+    'SHARE',
+    'SHARE ROW EXCLUSIVE',
+    'EXCLUSIVE',
+    'ACCESS EXCLUSIVE',
+)
+
+def require_lock(lock):
+    """
+    Decorator for PostgreSQL's table-level lock functionality
+
+    Example:
+        @transaction.commit_on_success
+        @require_lock(MyModel, 'ACCESS EXCLUSIVE')
+        def save(self, *args, **kwargs):
+            super().save(*args, **kwargs)
+
+    PostgreSQL's LOCK Documentation:
+    http://www.postgresql.org/docs/8.3/interactive/sql-lock.html
+    """
+    def require_lock_decorator(view_func):
+        def wrapper(model, *args, **kwargs):
+            if lock not in LOCK_MODES:
+                raise ValueError('%s is not a PostgreSQL supported lock mode.')
+            from django.db import connection
+            cursor = connection.cursor()
+            cursor.execute(
+                'LOCK TABLE %s IN %s MODE' % (model._meta.db_table, lock)
+            )
+            return view_func(model, *args, **kwargs)
+        return wrapper
+    return require_lock_decorator
 
 
 @receiver(pre_save)
@@ -333,6 +372,15 @@ class Pass(models.Model, Serializable):
 
     class Meta(object):
         verbose_name_plural = 'Passes'
+
+    @transaction.atomic
+    @require_lock('SHARE ROW EXCLUSIVE')
+    def save(self, *args, **kwargs):
+        # Make this locked, so only a single process can save a Pass at a time,
+        # otherwise conflicting passes may be added.
+        # (as the constraint cannot be added to the db directly)
+        # Conflict check is done inside `Pass.clean` which is called via `pre_save_handler`
+        super().save(*args, **kwargs)
 
     def clean(self):
         stale = not (self.is_desired or
