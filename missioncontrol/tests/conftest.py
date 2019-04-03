@@ -1,9 +1,12 @@
-import pytest
+from contextlib import contextmanager
 from base64 import b64encode
 from uuid import uuid4
 
+import pytest
 from flask.testing import FlaskClient
 from django.contrib.auth.models import User
+from django.db.utils import IntegrityError
+from django.db import connections
 
 class AuthorizedClient(FlaskClient):
     def __init__(self, *args, **kwargs):
@@ -32,26 +35,41 @@ class AuthorizedClient(FlaskClient):
         kwargs["headers"].update(self._headers)
         return super(AuthorizedClient, self).open( *args, **kwargs)
 
-
-
-@pytest.fixture
-@pytest.mark.django_db
-def test_client():
+@contextmanager
+def get_test_client():
     from api import app
     flask_app = app.app
 
     test_user = 'test_user'
     test_password = 'test_password'
 
-    my_admin = User.objects.create_superuser(
-        test_user, 'myemail@test.com', test_password
-    )
+    try:
+        my_admin = User.objects.create_superuser(
+            test_user, 'myemail@test.com', test_password
+        )
+    except IntegrityError:
+        pass
 
     flask_app.test_client_class = AuthorizedClient
     client = flask_app.test_client(username=test_user,
                                    password=test_password)
 
-    return client
+    try:
+        yield client
+    finally:
+        connections.close_all()
+
+@pytest.fixture
+def new_test_client():
+    yield get_test_client
+    connections.close_all()
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def test_client():
+    with get_test_client() as client:
+        yield client
 
 
 @pytest.fixture

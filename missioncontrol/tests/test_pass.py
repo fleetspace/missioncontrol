@@ -1,7 +1,11 @@
 import json
 import pytest
+import uuid
 
-from home.models import Satellite
+from django.db import connection
+
+from home.models import Satellite, Pass
+from utils import concurrent_test
 import api
 
 
@@ -438,3 +442,45 @@ def test_pass_task_stack_put(test_client, simple_sat, simple_gs, some_uuid, simp
     _pass = response.json
 
     assert _pass['task_stack'] == ts_uuid
+
+@pytest.mark.django_db(transaction=True)
+def test_pass_concurrent_conflict(new_test_client, simple_sat, simple_gs):
+    headers = {"content-type": "application/json"}
+
+    with new_test_client() as test_client:
+        def create_asset(asset_type, asset):
+            asset_hwid = asset["hwid"]
+            response = test_client.put(
+                f"/api/v0/{asset_type}s/{asset_hwid}/",
+                headers=headers,
+                data=json.dumps(asset)
+            )
+            assert response.status_code == 201
+        create_asset('satellite', simple_sat)
+        create_asset('groundstation', simple_gs)
+
+
+
+    @concurrent_test(2)
+    def add_passes():
+        with new_test_client() as test_client:
+            new_uuid = uuid.uuid4()
+            _pass = {
+                "satellite": simple_sat["hwid"],
+                "groundstation": simple_gs["hwid"],
+                "start_time": "2018-11-25T00:00:00Z",
+                "end_time": "2018-11-25T01:00:00Z",
+            }
+            url = f"/api/v0/passes/{new_uuid}/"
+            result = test_client.put(
+                f"/api/v0/passes/{new_uuid}/",
+                headers=headers,
+                data=json.dumps(_pass)
+            )
+            assert result.status_code in [201,409], result.json
+
+    add_passes()
+
+    # Only one pass should be added, as the other should
+    # conflict
+    assert Pass.objects.count() == 1
