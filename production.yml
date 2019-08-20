@@ -9,7 +9,7 @@ services:
   django: &django
     build:
       context: .
-      dockerfile: ./compose/production/django/Dockerfile
+      dockerfile: ./compose/django/Dockerfile
       args:
         DJANGO_SETTINGS_MODULE: config.settings.production
     image: missioncontrol_production_django
@@ -24,7 +24,7 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
+      dockerfile: ./compose/postgres/Dockerfile
     image: missioncontrol_production_postgres
     volumes:
       - production_postgres_data:/var/lib/postgresql/data
@@ -36,7 +36,7 @@ services:
   caddy:
     build:
       context: .
-      dockerfile: ./compose/production/caddy/Dockerfile
+      dockerfile: ./compose/caddy/Dockerfile
     image: missioncontrol_production_caddy
     depends_on:
       - django

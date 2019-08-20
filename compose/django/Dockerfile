@@ -32,20 +32,21 @@ USER django
 
 # Do this before the copy so the python requirements can be
 # cached
-# TODO Do this with yarn as well
 COPY --chown=django:django ./Pipfile* /app/
-RUN pipenv install --deploy
+ARG PIPENV_ARGS
+RUN pipenv install --deploy ${PIPENV_ARGS}
 
 # Load ephemeris as this is slow - and put it before app copy as files change more often
 RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load("de405.bsp"); load.timescale()'
 
-COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
-COPY --chown=django:django ./compose/production/django/start /start
+COPY --chown=django:django ./compose/django/entrypoint /entrypoint
+COPY --chown=django:django ./compose/django/start /start
 
 COPY --chown=django:django . /app
 COPY --from=frontend --chown=django:django /app/build /app/frontend/build
 
 ARG DJANGO_SETTINGS_MODULE
-RUN pipenv run python /app/manage.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
+# As collectstatic requires the secret key to be set, use a temporary one
+RUN env DJANGO_SECRET_KEY='collectstatic' pipenv run python /app/manage.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
 
 ENTRYPOINT ["/entrypoint"]
