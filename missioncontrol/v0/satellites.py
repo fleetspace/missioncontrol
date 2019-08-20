@@ -2,8 +2,7 @@ from home.models import Satellite
 
 
 def search(limit=100):
-    return [sat.to_dict() for sat
-            in Satellite.objects.all().order_by('hwid')[:limit]]
+    return [sat.to_dict() for sat in Satellite.objects.all().order_by("hwid")[:limit]]
 
 
 def get_hwid(hwid):
@@ -22,9 +21,7 @@ def patch(hwid, satellite):
 def put(hwid, satellite):
     satellite["hwid"] = hwid
     m = Satellite(**satellite).to_dict()
-    sat, _created = Satellite.objects.update_or_create(
-        defaults=m, hwid=hwid
-    )
+    sat, _created = Satellite.objects.update_or_create(defaults=m, hwid=hwid)
     status_code = 201 if _created else 200
     return sat.to_dict(), status_code
 

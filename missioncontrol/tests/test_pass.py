@@ -25,11 +25,11 @@ def test_pass_create_from_times(test_client, simple_sat, simple_gs, some_uuid):
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
-    create_asset('satellite', simple_sat)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("groundstation", simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -40,27 +40,20 @@ def test_pass_create_from_times(test_client, simple_sat, simple_gs, some_uuid):
 
     # create
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
     assert response.json
 
     # update
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 200
     assert response.json
 
     # get individual
-    response = test_client.get(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers
-    )
+    response = test_client.get(f"/api/v0/passes/{some_uuid}/", headers=headers)
     assert response.status_code == 200
     assert response.json
 
@@ -68,7 +61,7 @@ def test_pass_create_from_times(test_client, simple_sat, simple_gs, some_uuid):
     response = test_client.get(
         f"/api/v0/passes/",
         query_string={"range_start": _pass["start_time"]},
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 200
     assert len(response.json) == 1
@@ -84,11 +77,11 @@ def test_pass_create_and_patch(test_client, simple_sat, simple_gs, some_uuid):
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
-    create_asset('satellite', simple_sat)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("groundstation", simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -99,9 +92,7 @@ def test_pass_create_and_patch(test_client, simple_sat, simple_gs, some_uuid):
 
     # create
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
 
@@ -109,9 +100,7 @@ def test_pass_create_and_patch(test_client, simple_sat, simple_gs, some_uuid):
     _pass = response.json
     patch = {"is_desired": False}
     response = test_client.patch(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(patch)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(patch)
     )
     assert response.status_code == 200
     _pass.update(patch)
@@ -119,8 +108,9 @@ def test_pass_create_and_patch(test_client, simple_sat, simple_gs, some_uuid):
 
 
 @pytest.mark.django_db
-def test_pass_create_conflict_from_put_diff_gc(test_client, simple_sat, simple_gs, some_uuid,
-                              another_uuid):
+def test_pass_create_conflict_from_put_diff_gc(
+    test_client, simple_sat, simple_gs, some_uuid, another_uuid
+):
     headers = {"content-type": "application/json"}
 
     def create_asset(asset_type, asset):
@@ -128,15 +118,15 @@ def test_pass_create_conflict_from_put_diff_gc(test_client, simple_sat, simple_g
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
     simple_sat_2 = simple_sat.copy()
-    simple_sat_2['hwid'] = 'aSecondSatHere'
+    simple_sat_2["hwid"] = "aSecondSatHere"
 
-    create_asset('satellite', simple_sat)
-    create_asset('satellite', simple_sat_2)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("satellite", simple_sat_2)
+    create_asset("groundstation", simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -154,25 +144,22 @@ def test_pass_create_conflict_from_put_diff_gc(test_client, simple_sat, simple_g
 
     # create one
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
 
     # create conflict
     response = test_client.put(
-        f"/api/v0/passes/{another_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass2)
+        f"/api/v0/passes/{another_uuid}/", headers=headers, data=json.dumps(_pass2)
     )
     assert response.status_code == 409
     assert len(response.json["conflicts"]) == 1
 
 
 @pytest.mark.django_db
-def test_pass_create_conflict_from_put_diff_sat(test_client, simple_sat, simple_gs, some_uuid,
-                              another_uuid):
+def test_pass_create_conflict_from_put_diff_sat(
+    test_client, simple_sat, simple_gs, some_uuid, another_uuid
+):
     headers = {"content-type": "application/json"}
 
     def create_asset(asset_type, asset):
@@ -180,15 +167,15 @@ def test_pass_create_conflict_from_put_diff_sat(test_client, simple_sat, simple_
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
     second_sat = simple_sat.copy()
-    second_sat['hwid'] = 'secondsat'
+    second_sat["hwid"] = "secondsat"
 
-    create_asset('satellite', simple_sat)
-    create_asset('satellite', second_sat)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("satellite", second_sat)
+    create_asset("groundstation", simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -206,25 +193,22 @@ def test_pass_create_conflict_from_put_diff_sat(test_client, simple_sat, simple_
 
     # create one
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
 
     # create conflict
     response = test_client.put(
-        f"/api/v0/passes/{another_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass2)
+        f"/api/v0/passes/{another_uuid}/", headers=headers, data=json.dumps(_pass2)
     )
     assert response.status_code == 409
     assert len(response.json["conflicts"]) == 1
 
 
 @pytest.mark.django_db
-def test_pass_create_conflict_from_patch(test_client, simple_sat, simple_gs, some_uuid,
-                              another_uuid):
+def test_pass_create_conflict_from_patch(
+    test_client, simple_sat, simple_gs, some_uuid, another_uuid
+):
     headers = {"content-type": "application/json"}
 
     def create_asset(asset_type, asset):
@@ -232,11 +216,11 @@ def test_pass_create_conflict_from_patch(test_client, simple_sat, simple_gs, som
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
-    create_asset('satellite', simple_sat)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("groundstation", simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -247,34 +231,26 @@ def test_pass_create_conflict_from_patch(test_client, simple_sat, simple_gs, som
 
     # create one
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
 
     # mark first pass stale
     patch = {"is_desired": False}
     response = test_client.patch(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(patch)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(patch)
     )
 
     # create second pass that overlaps stale pass
     response = test_client.put(
-        f"/api/v0/passes/{another_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{another_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
 
     # mark first pass as desired
     patch = {"is_desired": True}
     response = test_client.patch(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(patch)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(patch)
     )
     assert response.status_code == 409
     assert len(response.json["conflicts"]) == 1
@@ -289,32 +265,26 @@ def test_pass_create_and_get_track(test_client, simple_sat, simple_gs, some_uuid
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
-    create_asset('satellite', simple_sat)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("groundstation", simple_gs)
 
     params = {
         "range_start": "2018-12-04T21:46:00Z",
-        "range_end": "2018-12-04T21:46:00Z"
+        "range_end": "2018-12-04T21:46:00Z",
     }
     response = test_client.get(
-        f"/api/v0/accesses/",
-        headers=headers,
-        query_string=params
+        f"/api/v0/accesses/", headers=headers, query_string=params
     )
     access = response.json[0]
 
-    _pass = {
-        "access_id": access["id"]
-    }
+    _pass = {"access_id": access["id"]}
 
     # create
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
     _pass = response.json
@@ -324,10 +294,7 @@ def test_pass_create_and_get_track(test_client, simple_sat, simple_gs, some_uuid
     assert _pass["end_time"][:-8] == access["end_time"][:-8]
 
     # get track
-    response = test_client.get(
-        f"/api/v0/passes/{some_uuid}/track/",
-        headers=headers
-    )
+    response = test_client.get(f"/api/v0/passes/{some_uuid}/track/", headers=headers)
     assert response.status_code == 200
     assert response.json
 
@@ -335,8 +302,7 @@ def test_pass_create_and_get_track(test_client, simple_sat, simple_gs, some_uuid
 
     # Assumes default step is 5
     response = test_client.get(
-        f"/api/v0/passes/{some_uuid}/track/?step=10",
-        headers=headers
+        f"/api/v0/passes/{some_uuid}/track/?step=10", headers=headers
     )
     assert response.status_code == 200, response.get_data()
     # Subtract one for the edge point included, expected
@@ -352,11 +318,11 @@ def test_pass_create_and_list_stale(test_client, simple_sat, simple_gs, some_uui
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
 
-    create_asset('satellite', simple_sat)
-    create_asset('groundstation', simple_gs)
+    create_asset("satellite", simple_sat)
+    create_asset("groundstation", simple_gs)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -367,9 +333,7 @@ def test_pass_create_and_list_stale(test_client, simple_sat, simple_gs, some_uui
 
     # create
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
     _pass = response.json
@@ -377,9 +341,7 @@ def test_pass_create_and_list_stale(test_client, simple_sat, simple_gs, some_uui
     # patch is_desired false
     patch = {"is_desired": False}
     response = test_client.patch(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(patch)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(patch)
     )
     assert response.status_code == 200
     _pass.update(patch)
@@ -389,7 +351,7 @@ def test_pass_create_and_list_stale(test_client, simple_sat, simple_gs, some_uui
     response = test_client.get(
         f"/api/v0/passes/",
         query_string={"range_start": _pass["start_time"]},
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json == []
@@ -397,15 +359,17 @@ def test_pass_create_and_list_stale(test_client, simple_sat, simple_gs, some_uui
     # check that we get back stale with show_stale
     response = test_client.get(
         f"/api/v0/passes/",
-        query_string={"show_stale": True,
-                      "range_start": _pass["start_time"]},
-        headers=headers
+        query_string={"show_stale": True, "range_start": _pass["start_time"]},
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json == [_pass]
 
+
 @pytest.mark.django_db
-def test_pass_task_stack_put(test_client, simple_sat, simple_gs, some_uuid, simple_task_stack):
+def test_pass_task_stack_put(
+    test_client, simple_sat, simple_gs, some_uuid, simple_task_stack
+):
     headers = {"content-type": "application/json"}
     ts_uuid = simple_task_stack["uuid"]
 
@@ -414,16 +378,13 @@ def test_pass_task_stack_put(test_client, simple_sat, simple_gs, some_uuid, simp
         response = test_client.put(
             f"/api/v0/{asset_type}s/{asset_hwid}/",
             headers=headers,
-            data=json.dumps(asset)
+            data=json.dumps(asset),
         )
         assert response.status_code == 201
 
-    create_asset('satellite', simple_sat)
-    create_asset('groundstation', simple_gs)
-    test_client.put(
-        f"/api/v0/task-stacks/{ts_uuid}/",
-        json=simple_task_stack
-    )
+    create_asset("satellite", simple_sat)
+    create_asset("groundstation", simple_gs)
+    test_client.put(f"/api/v0/task-stacks/{ts_uuid}/", json=simple_task_stack)
 
     _pass = {
         "satellite": simple_sat["hwid"],
@@ -434,32 +395,31 @@ def test_pass_task_stack_put(test_client, simple_sat, simple_gs, some_uuid, simp
     }
     # create
     response = test_client.put(
-        f"/api/v0/passes/{some_uuid}/",
-        headers=headers,
-        data=json.dumps(_pass)
+        f"/api/v0/passes/{some_uuid}/", headers=headers, data=json.dumps(_pass)
     )
     assert response.status_code == 201
     _pass = response.json
 
-    assert _pass['task_stack'] == ts_uuid
+    assert _pass["task_stack"] == ts_uuid
+
 
 @pytest.mark.django_db(transaction=True)
 def test_pass_concurrent_conflict(new_test_client, simple_sat, simple_gs):
     headers = {"content-type": "application/json"}
 
     with new_test_client() as test_client:
+
         def create_asset(asset_type, asset):
             asset_hwid = asset["hwid"]
             response = test_client.put(
                 f"/api/v0/{asset_type}s/{asset_hwid}/",
                 headers=headers,
-                data=json.dumps(asset)
+                data=json.dumps(asset),
             )
             assert response.status_code == 201
-        create_asset('satellite', simple_sat)
-        create_asset('groundstation', simple_gs)
 
-
+        create_asset("satellite", simple_sat)
+        create_asset("groundstation", simple_gs)
 
     @concurrent_test(2)
     def add_passes():
@@ -473,11 +433,9 @@ def test_pass_concurrent_conflict(new_test_client, simple_sat, simple_gs):
             }
             url = f"/api/v0/passes/{new_uuid}/"
             result = test_client.put(
-                f"/api/v0/passes/{new_uuid}/",
-                headers=headers,
-                data=json.dumps(_pass)
+                f"/api/v0/passes/{new_uuid}/", headers=headers, data=json.dumps(_pass)
             )
-            assert result.status_code in [201,409], result.json
+            assert result.status_code in [201, 409], result.json
 
     add_passes()
 

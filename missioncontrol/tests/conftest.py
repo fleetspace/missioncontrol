@@ -8,56 +8,53 @@ from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 from django.db import connections
 
+
 class AuthorizedClient(FlaskClient):
     def __init__(self, *args, **kwargs):
         username = kwargs.pop("username", "test_user")
         password = kwargs.pop("password", "test_password")
-        creds =  "Basic {basic}"
+        creds = "Basic {basic}"
         to_encode = "{user}:{password}"
         to_encode = to_encode.format(user=username, password=password)
         b64encoded_ascii = b64encode(to_encode.encode()).decode("ascii")
         creds = creds.format(basic=b64encoded_ascii)
-        self._headers = {
-            "Authorization": creds
-        }
+        self._headers = {"Authorization": creds}
         super(AuthorizedClient, self).__init__(*args, **kwargs)
-        jwt = self.get(
-            "/api/v0/auth/jwt"
-        ).data
+        jwt = self.get("/api/v0/auth/jwt").data
         self._headers = {
-            "Authorization": "Bearer {jwt}".format(
-                jwt=jwt.decode("ascii")
-            )
+            "Authorization": "Bearer {jwt}".format(jwt=jwt.decode("ascii"))
         }
 
     def open(self, *args, **kwargs):
         kwargs.setdefault("headers", {})
         kwargs["headers"].update(self._headers)
-        return super(AuthorizedClient, self).open( *args, **kwargs)
+        return super(AuthorizedClient, self).open(*args, **kwargs)
+
 
 @contextmanager
 def get_test_client():
     from api import app
+
     flask_app = app.app
 
-    test_user = 'test_user'
-    test_password = 'test_password'
+    test_user = "test_user"
+    test_password = "test_password"
 
     try:
         my_admin = User.objects.create_superuser(
-            test_user, 'myemail@test.com', test_password
+            test_user, "myemail@test.com", test_password
         )
     except IntegrityError:
         pass
 
     flask_app.test_client_class = AuthorizedClient
-    client = flask_app.test_client(username=test_user,
-                                   password=test_password)
+    client = flask_app.test_client(username=test_user, password=test_password)
 
     try:
         yield client
     finally:
         connections.close_all()
+
 
 @pytest.fixture
 def new_test_client():
@@ -79,7 +76,7 @@ def simple_gs():
         "latitude": 0.0,
         "longitude": 0.0,
         "elevation": 0,
-        "horizon_mask": [5]*360,
+        "horizon_mask": [5] * 360,
         "passes_read_only": False,
     }
 
@@ -91,7 +88,7 @@ def simple_task_stack():
         "tasks": ["hello.py"],
         "environment": "docker.bar.space/missioncontrol_tasks:0.4.3",
         "name": "nominal-chops",
-        "pinned": False
+        "pinned": False,
     }
 
 
@@ -102,7 +99,7 @@ def pinned_task_stack():
         "tasks": ["hello.py", "byeee.py"],
         "environment": "docker.bar.space/missioncontrol_tasks:0.4.3",
         "name": "nominal-hops",
-        "pinned": True
+        "pinned": True,
     }
 
 
@@ -110,11 +107,13 @@ def pinned_task_stack():
 def simple_sat():
     return {
         "hwid": "tiangong2",
-        "tle": ["1 41765U 16057A   18336.62979237  .00002898  00000-0  39285-4 0  9996",
-                "2 41765  42.7853  58.4157 0008242 337.7306 164.9140 15.60111034126320"],
+        "tle": [
+            "1 41765U 16057A   18336.62979237  .00002898  00000-0  39285-4 0  9996",
+            "2 41765  42.7853  58.4157 0008242 337.7306 164.9140 15.60111034126320",
+        ],
         "catid": "41765U",
         "logger_state": None,
-        "task_stack": None
+        "task_stack": None,
     }
 
 

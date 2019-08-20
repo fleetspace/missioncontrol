@@ -5,14 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0009_pass_external_id'),
-    ]
+    dependencies = [("home", "0009_pass_external_id")]
 
     operations = [
         migrations.AddField(
-            model_name='pass',
-            name='script',
-            field=models.TextField(blank=True, default=None, help_text='Path to script to execute during pass', null=True),
-        ),
+            model_name="pass",
+            name="script",
+            field=models.TextField(
+                blank=True,
+                default=None,
+                help_text="Path to script to execute during pass",
+                null=True,
+            ),
+        )
     ]

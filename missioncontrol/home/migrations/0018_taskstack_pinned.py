@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0017_pass_attributes'),
-    ]
+    dependencies = [("home", "0017_pass_attributes")]
 
     operations = [
         migrations.AddField(
-            model_name='taskstack',
-            name='pinned',
+            model_name="taskstack",
+            name="pinned",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

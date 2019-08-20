@@ -5,13 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0018_taskstack_pinned'),
-    ]
+    dependencies = [("home", "0018_taskstack_pinned")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='pass',
-            name='script',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="pass", name="script")]

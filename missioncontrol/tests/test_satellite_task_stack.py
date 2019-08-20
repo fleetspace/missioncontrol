@@ -4,7 +4,7 @@ import pytest
 
 @pytest.mark.django_db
 def test_satellite_task_stack_put(test_client, simple_sat, simple_task_stack):
-    read_only_fields = ("created", )
+    read_only_fields = ("created",)
 
     def remove_read_only(ts):
         for f in read_only_fields:
@@ -12,8 +12,7 @@ def test_satellite_task_stack_put(test_client, simple_sat, simple_task_stack):
         return ts
 
     response = test_client.put(
-        "api/v0/satellites/{hwid}/".format(hwid=simple_sat["hwid"]),
-        json=simple_sat
+        "api/v0/satellites/{hwid}/".format(hwid=simple_sat["hwid"]), json=simple_sat
     )
 
     # create_task_stack

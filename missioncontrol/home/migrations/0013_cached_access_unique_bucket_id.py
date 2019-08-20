@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def drop_duplicates(apps, schema_editor):
-    CachedAccess = apps.get_model('home', 'CachedAccess')
+    CachedAccess = apps.get_model("home", "CachedAccess")
     for row in CachedAccess.objects.all():
         if CachedAccess.objects.filter(bucket_hash=row.bucket_hash).count() > 1:
             row.delete()
@@ -12,15 +12,13 @@ def drop_duplicates(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0012_satellite_logger_state'),
-    ]
+    dependencies = [("home", "0012_satellite_logger_state")]
 
     operations = [
         migrations.RunPython(drop_duplicates),
         migrations.AlterField(
-            model_name='cachedaccess',
-            name='bucket_hash',
+            model_name="cachedaccess",
+            name="bucket_hash",
             field=models.CharField(max_length=100, unique=True),
         ),
     ]

@@ -10,11 +10,12 @@ from django.test.utils import isolate_apps
 from home.models import ISODateTimeField
 
 
-@isolate_apps('home')
+@isolate_apps("home")
 def test_isodatetimefield():
     class TestModel(models.Model):
         class Meta:
-            app_label = 'home'
+            app_label = "home"
+
         datetime = ISODateTimeField()
 
     naive = datetime(2018, 2, 3, 4, 5, 6, 7)

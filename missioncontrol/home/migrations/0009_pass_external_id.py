@@ -5,14 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0008_merge_20181219_0056'),
-    ]
+    dependencies = [("home", "0008_merge_20181219_0056")]
 
     operations = [
         migrations.AddField(
-            model_name='pass',
-            name='external_id',
-            field=models.TextField(blank=True, default=None, help_text='3rd parties may reference this pass by a different name, save it here', null=True),
-        ),
+            model_name="pass",
+            name="external_id",
+            field=models.TextField(
+                blank=True,
+                default=None,
+                help_text="3rd parties may reference this pass by a different name, save it here",
+                null=True,
+            ),
+        )
     ]

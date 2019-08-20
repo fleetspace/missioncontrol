@@ -6,29 +6,47 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0018_taskstack_pinned'),
-    ]
+    dependencies = [("home", "0018_taskstack_pinned")]
 
     operations = [
         migrations.AlterField(
-            model_name='pass',
-            name='groundstation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='home.GroundStation', to_field='hwid'),
+            model_name="pass",
+            name="groundstation",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                to="home.GroundStation",
+                to_field="hwid",
+            ),
         ),
         migrations.AlterField(
-            model_name='pass',
-            name='satellite',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='home.Satellite', to_field='hwid'),
+            model_name="pass",
+            name="satellite",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                to="home.Satellite",
+                to_field="hwid",
+            ),
         ),
         migrations.AlterField(
-            model_name='pass',
-            name='task_stack',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='home.TaskStack', to_field='uuid'),
+            model_name="pass",
+            name="task_stack",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="home.TaskStack",
+                to_field="uuid",
+            ),
         ),
         migrations.AlterField(
-            model_name='satellite',
-            name='task_stack',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='home.TaskStack', to_field='uuid'),
+            model_name="satellite",
+            name="task_stack",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="home.TaskStack",
+                to_field="uuid",
+            ),
         ),
     ]

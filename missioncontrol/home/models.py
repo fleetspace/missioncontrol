@@ -26,17 +26,17 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-
 LOCK_MODES = (
-    'ACCESS SHARE',
-    'ROW SHARE',
-    'ROW EXCLUSIVE',
-    'SHARE UPDATE EXCLUSIVE',
-    'SHARE',
-    'SHARE ROW EXCLUSIVE',
-    'EXCLUSIVE',
-    'ACCESS EXCLUSIVE',
+    "ACCESS SHARE",
+    "ROW SHARE",
+    "ROW EXCLUSIVE",
+    "SHARE UPDATE EXCLUSIVE",
+    "SHARE",
+    "SHARE ROW EXCLUSIVE",
+    "EXCLUSIVE",
+    "ACCESS EXCLUSIVE",
 )
+
 
 def require_lock(lock):
     """
@@ -51,24 +51,26 @@ def require_lock(lock):
     PostgreSQL's LOCK Documentation:
     http://www.postgresql.org/docs/8.3/interactive/sql-lock.html
     """
+
     def require_lock_decorator(view_func):
         def wrapper(model, *args, **kwargs):
             if lock not in LOCK_MODES:
-                raise ValueError('%s is not a PostgreSQL supported lock mode.')
+                raise ValueError("%s is not a PostgreSQL supported lock mode.")
             from django.db import connection
+
             cursor = connection.cursor()
-            cursor.execute(
-                'LOCK TABLE %s IN %s MODE' % (model._meta.db_table, lock)
-            )
+            cursor.execute("LOCK TABLE %s IN %s MODE" % (model._meta.db_table, lock))
             return view_func(model, *args, **kwargs)
+
         return wrapper
+
     return require_lock_decorator
 
 
 @receiver(pre_save)
 def pre_save_handler(sender, instance, *args, **kwargs):
     # always validate local models before saving
-    if sender in apps.all_models['home'].values():
+    if sender in apps.all_models["home"].values():
         instance.full_clean()
 
 
@@ -78,6 +80,7 @@ class ISODateTimeField(models.DateTimeField):
 
     Check it and convert if nessesary at all steps
     """
+
     def value_to_string(self, obj):
         val = self.value_from_object(obj)
         if val:
@@ -87,7 +90,7 @@ class ISODateTimeField(models.DateTimeField):
                 val = val.astimezone(tz=UTC)
             formatter = dateformat.DateFormat(val)
             return formatter.format(settings.DATETIME_FORMAT)
-        return ''
+        return ""
 
     def to_python(self, value):
         result = super().to_python(value)
@@ -97,6 +100,7 @@ class ISODateTimeField(models.DateTimeField):
             if result.tzinfo != UTC:
                 result = result.astimezone(tz=UTC)
         return result
+
 
 class Serializable(object):
     """ A mixin for turning the django record into an object that can be
@@ -112,7 +116,7 @@ class Serializable(object):
         opts = self._meta
         data = {}
         for f in chain(opts.concrete_fields, opts.private_fields, opts.many_to_many):
-            if f.name is 'id':
+            if f.name is "id":
                 continue
             data[f.name] = f.value_from_object(self)
         return data
@@ -128,6 +132,7 @@ class TaskStack(models.Model, Serializable):
     """ A TaskStack is an immutable list of tasks, and an environment
         to run them in.
     """
+
     name = models.CharField(max_length=100, blank=True)
     environment = models.CharField(max_length=100, blank=True)
     uuid = models.UUIDField(default=uuid4, unique=True)
@@ -144,16 +149,16 @@ class TaskStack(models.Model, Serializable):
         if not isinstance(self.tasks, list):
             raise ProblemException(
                 status=400,
-                title='ValidationError',
-                detail='tasks must be a list of tasks to run',
-                ext=self.tasks
+                title="ValidationError",
+                detail="tasks must be a list of tasks to run",
+                ext=self.tasks,
             )
         if any([not isinstance(task, six.string_types) for task in self.tasks]):
             raise ProblemException(
                 status=400,
-                title='ValidationError',
-                detail='tasks must be strings',
-                ext=self.tasks
+                title="ValidationError",
+                detail="tasks must be strings",
+                ext=self.tasks,
             )
 
     def __repr__(self):
@@ -164,12 +169,15 @@ class TaskStack(models.Model, Serializable):
 
 
 class TLEField(models.Field):
-    sep = '|'
+    sep = "|"
 
     @staticmethod
     def verify_checksum(tle):
         for line in tle:
-            checksum = sum([int(x) for x in line[:-1].replace('-', '1') if x in '0123456789']) % 10
+            checksum = (
+                sum([int(x) for x in line[:-1].replace("-", "1") if x in "0123456789"])
+                % 10
+            )
             if f"{checksum}" != line[-1]:
                 raise ValidationError(f"Checksum invalid: {checksum} != {line[-1]}")
 
@@ -187,7 +195,7 @@ class TLEField(models.Field):
         return tle
 
     def get_internal_type(self):
-        return 'TextField'
+        return "TextField"
 
     def from_db_value(self, value, expression, connection):
         if value is None:
@@ -210,18 +218,14 @@ class TLEField(models.Field):
         if len(value) != 2:
             raise ValidationError("TLE must have two elements!")
         if self.sep in value[0] or self.sep in value[1]:
-            raise ValidationError(
-                "TLE cannot contain '{sep}'".format(sep=self.sep))
+            raise ValidationError("TLE cannot contain '{sep}'".format(sep=self.sep))
         return self.sep.join(value)
 
     def formfield(self, **kwargs):
         defaults = {
-            'widget':
-            forms.Textarea(attrs={
-                'rows': 4,
-                'cols': 69,
-                'style': 'font-family: monospace'
-            })
+            "widget": forms.Textarea(
+                attrs={"rows": 4, "cols": 69, "style": "font-family: monospace"}
+            )
         }
         defaults.update(kwargs)
         return super().formfield(**defaults)
@@ -238,8 +242,9 @@ class Satellite(models.Model, Serializable):
     catid = models.CharField(blank=True, max_length=20)
     tle = TLEField(blank=True, null=True)
     logger_state = JSONField(blank=True, null=True)
-    task_stack = models.ForeignKey(TaskStack, null=True, blank=True,
-                                   on_delete=models.SET_NULL, to_field='uuid')
+    task_stack = models.ForeignKey(
+        TaskStack, null=True, blank=True, on_delete=models.SET_NULL, to_field="uuid"
+    )
 
     @property
     def tle1(self):
@@ -267,7 +272,7 @@ class Satellite(models.Model, Serializable):
 
 class HorizonMaskField(models.Field):
     def get_internal_type(self):
-        return 'TextField'
+        return "TextField"
 
     def _to_list(self, value):
         value = value.strip("[]")
@@ -295,7 +300,7 @@ class HorizonMaskField(models.Field):
             raise ValidationError("horizon_mask must be a list")
         if len(value) != 360:
             raise ValidationError("horizon_mask must have length=360")
-        return ','.join([str(round(l, 2)) for l in value])
+        return ",".join([str(round(l, 2)) for l in value])
 
 
 class GroundStation(models.Model, Serializable):
@@ -307,13 +312,15 @@ class GroundStation(models.Model, Serializable):
     passes_read_only = models.BooleanField(default=False)
 
     class Meta(object):
-        verbose_name_plural = 'Groundstations'
+        verbose_name_plural = "Groundstations"
 
     @property
     def _vec(self):
-        return Topos(latitude_degrees=float(self.latitude),
-                     longitude_degrees=float(self.longitude),
-                     elevation_m=float(self.elevation))
+        return Topos(
+            latitude_degrees=float(self.latitude),
+            longitude_degrees=float(self.longitude),
+            elevation_m=float(self.elevation),
+        )
 
     def observe(self, satellite):
         return satellite._vec - self._vec
@@ -340,17 +347,19 @@ class HistoricalPasses(models.Manager):
         return super().get_queryset().filter(end_time__lte=now)
 
     class Meta:
-        ordering = ('-start_time',)
+        ordering = ("-start_time",)
 
 
 class Pass(models.Model, Serializable):
     # TODO conflicts when passes overlap (or are within antenna reset time)
     uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
     access_id = models.CharField(max_length=100, blank=True)
-    satellite = models.ForeignKey(Satellite, on_delete=models.PROTECT, to_field='hwid')
+    satellite = models.ForeignKey(Satellite, on_delete=models.PROTECT, to_field="hwid")
     # save the TLE that created this pass, in case the satellite TLE updates
     source_tle = TLEField(blank=True, null=True)
-    groundstation = models.ForeignKey(GroundStation, on_delete=models.PROTECT, to_field='hwid')
+    groundstation = models.ForeignKey(
+        GroundStation, on_delete=models.PROTECT, to_field="hwid"
+    )
     start_time = ISODateTimeField()
     end_time = ISODateTimeField()
     scheduled_on_sat = models.BooleanField(default=False)
@@ -359,10 +368,13 @@ class Pass(models.Model, Serializable):
     is_valid = models.BooleanField(default=True)
     external_id = models.TextField(
         help_text="3rd parties may reference this pass by a different name, save it here",
-        default=None, null=True, blank=True
+        default=None,
+        null=True,
+        blank=True,
     )
-    task_stack = models.ForeignKey(TaskStack, null=True, blank=True,
-                                   on_delete=models.SET_NULL, to_field='uuid')
+    task_stack = models.ForeignKey(
+        TaskStack, null=True, blank=True, on_delete=models.SET_NULL, to_field="uuid"
+    )
     attributes = HStoreField(null=True, blank=True)
 
     objects = models.Manager()
@@ -371,10 +383,10 @@ class Pass(models.Model, Serializable):
     historical = HistoricalPasses()
 
     class Meta(object):
-        verbose_name_plural = 'Passes'
+        verbose_name_plural = "Passes"
 
     @transaction.atomic
-    @require_lock('SHARE ROW EXCLUSIVE')
+    @require_lock("SHARE ROW EXCLUSIVE")
     def save(self, *args, **kwargs):
         # Make this locked, so only a single process can save a Pass at a time,
         # otherwise conflicting passes may be added.
@@ -383,9 +395,7 @@ class Pass(models.Model, Serializable):
         super().save(*args, **kwargs)
 
     def clean(self):
-        stale = not (self.is_desired or
-                     self.scheduled_on_sat or
-                     self.scheduled_on_gs)
+        stale = not (self.is_desired or self.scheduled_on_sat or self.scheduled_on_gs)
         if stale:
             return
 
@@ -393,24 +403,26 @@ class Pass(models.Model, Serializable):
         overlap_range = (self.start_time - gs_reset_time, self.end_time)
         start_overlaps_qs = Q(start_time__range=overlap_range)
         end_overlaps_qs = Q(end_time__range=overlap_range)
-        not_stale = (Q(scheduled_on_sat=True) |
-                     Q(scheduled_on_gs=True) |
-                     Q(is_desired=True))
+        not_stale = (
+            Q(scheduled_on_sat=True) | Q(scheduled_on_gs=True) | Q(is_desired=True)
+        )
         same_sat = Q(satellite=self.satellite)
         same_gs = Q(groundstation=self.groundstation)
         different_id = ~Q(uuid=self.uuid)
         overlapping_pass_qs = Pass.objects.filter(
-            (same_gs | same_sat) & different_id & not_stale &
-            (start_overlaps_qs | end_overlaps_qs)
+            (same_gs | same_sat)
+            & different_id
+            & not_stale
+            & (start_overlaps_qs | end_overlaps_qs)
         )
         overlaps = overlapping_pass_qs.all()
         if overlaps:
             ext = {"conflicts": [p.to_dict() for p in overlaps]}
             raise ProblemException(
                 status=409,
-                title='Conflict',
-                detail='The provided pass conflicts with one on the server',
-                ext=ext
+                title="Conflict",
+                detail="The provided pass conflicts with one on the server",
+                ext=ext,
             )
 
     def refresh_tle(self):
@@ -420,11 +432,7 @@ class Pass(models.Model, Serializable):
     def recompute(self):
         mid_time = self.start_time + ((self.end_time - self.start_time) / 2)
         try:
-            access = Access.from_time(
-                mid_time,
-                self.satellite,
-                self.groundstation
-            )
+            access = Access.from_time(mid_time, self.satellite, self.groundstation)
         except ObjectDoesNotExist:
             self.is_valid = False
             return self.is_valid
@@ -451,7 +459,7 @@ class Pass(models.Model, Serializable):
             end_time=access.end_time,
             satellite=access.satellite,
             groundstation=access.groundstation,
-            source_tle=access.satellite.tle
+            source_tle=access.satellite.tle,
         )
 
     @classmethod
@@ -461,7 +469,7 @@ class Pass(models.Model, Serializable):
             end_time=end_time,
             satellite=satellite,
             groundstation=groundstation,
-            source_tle=satellite.tle
+            source_tle=satellite.tle,
         )
 
     def access(self):
@@ -476,8 +484,10 @@ class CachedAccess(models.Model):
     # hash(tle1, tle2, lat, lng, el, horizon_mask) + bucket_start + bucket_end
     bucket_hash = models.CharField(max_length=100)
     bucket_index = models.IntegerField(default=0)
-    satellite = models.ForeignKey(Satellite, on_delete=models.CASCADE, to_field='hwid')
-    groundstation = models.ForeignKey(GroundStation, on_delete=models.CASCADE, to_field='hwid')
+    satellite = models.ForeignKey(Satellite, on_delete=models.CASCADE, to_field="hwid")
+    groundstation = models.ForeignKey(
+        GroundStation, on_delete=models.CASCADE, to_field="hwid"
+    )
     start_time = ISODateTimeField(blank=True, null=True)
     end_time = ISODateTimeField(blank=True, null=True)
     modified = ISODateTimeField(auto_now=True)
@@ -485,7 +495,7 @@ class CachedAccess(models.Model):
     placeholder = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('bucket_hash', 'bucket_index')
+        unique_together = ("bucket_hash", "bucket_index")
 
     @classmethod
     def invalidate_satellite(cls, satellite):
@@ -501,13 +511,18 @@ class CachedAccess(models.Model):
             "groundstation": self.groundstation.hwid,
             "start_time": iso(self.start_time),
             "end_time": iso(self.end_time),
-            "max_alt": self.max_alt
+            "max_alt": self.max_alt,
         }
 
-    def to_access(self, base_url=''):
-        return Access(self.start_time, self.end_time,
-                      self.satellite, self.groundstation,
-                      self.max_alt, base_url=base_url)
+    def to_access(self, base_url=""):
+        return Access(
+            self.start_time,
+            self.end_time,
+            self.satellite,
+            self.groundstation,
+            self.max_alt,
+            base_url=base_url,
+        )
 
 
 from v0.accesses import Access

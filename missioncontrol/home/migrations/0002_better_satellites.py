@@ -5,7 +5,7 @@ import home.models
 
 
 def combine_tle(apps, schema_editor):
-    Satellite = apps.get_model('home', 'Satellite')
+    Satellite = apps.get_model("home", "Satellite")
     for sat in Satellite.objects.all():
         sat.tle = [sat.tle1, sat.tle2]
         sat.save()
@@ -13,33 +13,25 @@ def combine_tle(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0001_create_satellites'),
-    ]
+    dependencies = [("home", "0001_create_satellites")]
 
     operations = [
         migrations.AddField(
-            model_name='satellite',
-            name='tle',
+            model_name="satellite",
+            name="tle",
             field=home.models.TLEField(blank=True, null=True),
         ),
         migrations.RunPython(combine_tle),
-        migrations.RemoveField(
-            model_name='satellite',
-            name='tle1',
-        ),
-        migrations.RemoveField(
-            model_name='satellite',
-            name='tle2',
-        ),
+        migrations.RemoveField(model_name="satellite", name="tle1"),
+        migrations.RemoveField(model_name="satellite", name="tle2"),
         migrations.AlterField(
-            model_name='satellite',
-            name='catid',
+            model_name="satellite",
+            name="catid",
             field=models.CharField(blank=True, max_length=20),
         ),
         migrations.AlterField(
-            model_name='satellite',
-            name='hwid',
+            model_name="satellite",
+            name="hwid",
             field=models.CharField(max_length=20, unique=True),
         ),
     ]

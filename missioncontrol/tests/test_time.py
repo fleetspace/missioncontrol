@@ -9,7 +9,7 @@ from v0.time import utc
 
 
 def test_bad_datetime():
-    est = pytz.timezone('US/Eastern')
+    est = pytz.timezone("US/Eastern")
     dt = datetime.datetime.utcnow()
     dt = est.localize(dt)
     with pytest.raises(ValueError):

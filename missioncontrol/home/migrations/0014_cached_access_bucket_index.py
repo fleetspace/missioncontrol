@@ -5,23 +5,20 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0013_cached_access_unique_bucket_id'),
-    ]
+    dependencies = [("home", "0013_cached_access_unique_bucket_id")]
 
     operations = [
         migrations.AddField(
-            model_name='cachedaccess',
-            name='bucket_index',
+            model_name="cachedaccess",
+            name="bucket_index",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='cachedaccess',
-            name='bucket_hash',
+            model_name="cachedaccess",
+            name="bucket_hash",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterUniqueTogether(
-            name='cachedaccess',
-            unique_together={('bucket_hash', 'bucket_index')},
+            name="cachedaccess", unique_together={("bucket_hash", "bucket_index")}
         ),
     ]

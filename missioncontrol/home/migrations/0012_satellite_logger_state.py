@@ -6,14 +6,12 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0011_groundstation_passes_read_only'),
-    ]
+    dependencies = [("home", "0011_groundstation_passes_read_only")]
 
     operations = [
         migrations.AddField(
-            model_name='satellite',
-            name='logger_state',
+            model_name="satellite",
+            name="logger_state",
             field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, null=True),
-        ),
+        )
     ]

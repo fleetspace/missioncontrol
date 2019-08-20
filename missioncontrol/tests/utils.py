@@ -1,5 +1,6 @@
 import threading
 
+
 def concurrent_test(testtimes):
     """
     Add this decorator to small pieces of code that you want to test
@@ -8,15 +9,18 @@ def concurrent_test(testtimes):
     INSERT might fail when the INSERT assumes that the data has not changed
     since the SELECT.
     """
+
     def test_concurrently_decorator(test_func):
         def wrapper(*args, **kwargs):
             exceptions = []
+
             def call_test_func():
                 try:
                     test_func(*args, **kwargs)
                 except Exception as e:
                     exceptions.append(e)
                     raise
+
             threads = []
             for i in range(testtimes):
                 threads.append(threading.Thread(target=call_test_func))
@@ -25,6 +29,11 @@ def concurrent_test(testtimes):
             for t in threads:
                 t.join()
             if exceptions:
-                raise Exception('test_concurrently intercepted %s exceptions: %s' % (len(exceptions), exceptions))
+                raise Exception(
+                    "test_concurrently intercepted %s exceptions: %s"
+                    % (len(exceptions), exceptions)
+                )
+
         return wrapper
+
     return test_concurrently_decorator

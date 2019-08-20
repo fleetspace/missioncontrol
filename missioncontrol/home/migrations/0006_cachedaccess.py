@@ -6,23 +6,39 @@ import home.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0005_use_floats_and_isodatetime'),
-    ]
+    dependencies = [("home", "0005_use_floats_and_isodatetime")]
 
     operations = [
         migrations.CreateModel(
-            name='CachedAccess',
+            name="CachedAccess",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('bucket_hash', models.CharField(max_length=100)),
-                ('start_time', home.models.ISODateTimeField(blank=True, null=True)),
-                ('end_time', home.models.ISODateTimeField(blank=True, null=True)),
-                ('modified', home.models.ISODateTimeField(auto_now=True)),
-                ('max_alt', models.FloatField(blank=True, null=True)),
-                ('placeholder', models.BooleanField(default=False)),
-                ('groundstation', models.ForeignKey(on_delete=False, to='home.GroundStation', to_field='hwid')),
-                ('satellite', models.ForeignKey(on_delete=False, to='home.Satellite', to_field='hwid')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("bucket_hash", models.CharField(max_length=100)),
+                ("start_time", home.models.ISODateTimeField(blank=True, null=True)),
+                ("end_time", home.models.ISODateTimeField(blank=True, null=True)),
+                ("modified", home.models.ISODateTimeField(auto_now=True)),
+                ("max_alt", models.FloatField(blank=True, null=True)),
+                ("placeholder", models.BooleanField(default=False)),
+                (
+                    "groundstation",
+                    models.ForeignKey(
+                        on_delete=False, to="home.GroundStation", to_field="hwid"
+                    ),
+                ),
+                (
+                    "satellite",
+                    models.ForeignKey(
+                        on_delete=False, to="home.Satellite", to_field="hwid"
+                    ),
+                ),
             ],
-        ),
+        )
     ]

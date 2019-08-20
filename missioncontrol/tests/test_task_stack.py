@@ -12,7 +12,7 @@ import api
 def test_task_stack_create_conflict_from_put(test_client, simple_task_stack):
     ts_uuid = simple_task_stack["uuid"]
 
-    read_only_fields = ("created", )
+    read_only_fields = ("created",)
 
     def remove_read_only(ts):
         for f in read_only_fields:
@@ -21,25 +21,22 @@ def test_task_stack_create_conflict_from_put(test_client, simple_task_stack):
 
     # create one
     response = test_client.put(
-        f"/api/v0/task-stacks/{ts_uuid}/",
-        json=simple_task_stack
+        f"/api/v0/task-stacks/{ts_uuid}/", json=simple_task_stack
     )
     assert response.status_code == 201
     assert remove_read_only(response.json) == simple_task_stack
 
     # create conflict
     response = test_client.put(
-        f"/api/v0/task-stacks/{ts_uuid}/",
-        json=simple_task_stack
+        f"/api/v0/task-stacks/{ts_uuid}/", json=simple_task_stack
     )
     assert response.status_code == 409
     assert remove_read_only(response.json["task_stack"]) == simple_task_stack
 
 
 @pytest.mark.django_db
-def test_task_stack_list_get_pinned(test_client, simple_task_stack,
-                                    pinned_task_stack):
-    read_only_fields = ("created", )
+def test_task_stack_list_get_pinned(test_client, simple_task_stack, pinned_task_stack):
+    read_only_fields = ("created",)
 
     def remove_read_only(ts):
         for f in read_only_fields:
@@ -49,8 +46,7 @@ def test_task_stack_list_get_pinned(test_client, simple_task_stack,
     # create unpinned
     ts0_uuid = simple_task_stack["uuid"]
     response = test_client.put(
-        f"/api/v0/task-stacks/{ts0_uuid}/",
-        json=simple_task_stack
+        f"/api/v0/task-stacks/{ts0_uuid}/", json=simple_task_stack
     )
     assert response.status_code == 201
     assert remove_read_only(response.json) == simple_task_stack
@@ -58,16 +54,13 @@ def test_task_stack_list_get_pinned(test_client, simple_task_stack,
     # create pinned
     ts1_uuid = pinned_task_stack["uuid"]
     response = test_client.put(
-        f"/api/v0/task-stacks/{ts1_uuid}/",
-        json=pinned_task_stack
+        f"/api/v0/task-stacks/{ts1_uuid}/", json=pinned_task_stack
     )
     assert response.status_code == 201
     assert remove_read_only(response.json) == pinned_task_stack
 
     # get list
-    response = test_client.get(
-        "/api/v0/task-stacks/"
-    )
+    response = test_client.get("/api/v0/task-stacks/")
     assert response.status_code == 200
     assert len(response.json) == 1
     assert remove_read_only(response.json[0]) == pinned_task_stack
@@ -75,7 +68,7 @@ def test_task_stack_list_get_pinned(test_client, simple_task_stack,
 
 @pytest.mark.django_db
 def test_task_stack_list_text_search(test_client, pinned_task_stack):
-    read_only_fields = ("created", )
+    read_only_fields = ("created",)
 
     def remove_read_only(ts):
         for f in read_only_fields:
@@ -93,10 +86,7 @@ def test_task_stack_list_text_search(test_client, pinned_task_stack):
         for stack in stacks:
             ts = clone(pinned_task_stack, **stack)
             ts_uuid = ts["uuid"]
-            response = test_client.put(
-                f"/api/v0/task-stacks/{ts_uuid}/",
-                json=ts
-            )
+            response = test_client.put(f"/api/v0/task-stacks/{ts_uuid}/", json=ts)
             assert response.status_code == 201
             j = copy.deepcopy(response.json)
             ret.append(j)
@@ -107,22 +97,18 @@ def test_task_stack_list_text_search(test_client, pinned_task_stack):
         {"name": "mominal", "environment": "banana"},
         {"name": "nomilar", "environment": "squash"},
         {"name": "nominar", "environment": "banana"},
-        {"name": "lominal", "environment": "squash"}
+        {"name": "lominal", "environment": "squash"},
     ]
     put_stacks = put(stacks)
 
     # get list
-    response = test_client.get(
-        "/api/v0/task-stacks/?name=nom&environment=banana"
-    )
+    response = test_client.get("/api/v0/task-stacks/?name=nom&environment=banana")
     assert response.status_code == 200
     assert len(response.json) == 1
     assert response.json[0] == put_stacks[2]
 
     # get list
-    response = test_client.get(
-        "/api/v0/task-stacks/?environment=squash&name=mi"
-    )
+    response = test_client.get("/api/v0/task-stacks/?environment=squash&name=mi")
     assert response.status_code == 200
     assert len(response.json) == 2
     assert response.json == [put_stacks[1], put_stacks[3]]

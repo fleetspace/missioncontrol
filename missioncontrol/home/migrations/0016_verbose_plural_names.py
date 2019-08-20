@@ -5,17 +5,13 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0015_task_stack'),
-    ]
+    dependencies = [("home", "0015_task_stack")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='groundstation',
-            options={'verbose_name_plural': 'Groundstations'},
+            name="groundstation", options={"verbose_name_plural": "Groundstations"}
         ),
         migrations.AlterModelOptions(
-            name='pass',
-            options={'verbose_name_plural': 'Passes'},
+            name="pass", options={"verbose_name_plural": "Passes"}
         ),
     ]
