@@ -34,7 +34,6 @@ services:
       - ./frontend:/app
     environment:
       - REACT_APP_PROXY=http://django:8000/
-      - BUILD_COMPLETE_FILE=/app/build/complete
 
   postgres:
     build:

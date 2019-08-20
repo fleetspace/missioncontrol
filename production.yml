@@ -4,39 +4,22 @@ volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
   production_caddy: {}
-  production_frontend_build: {}
 
 services:
   django: &django
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
+      args:
+        DJANGO_SETTINGS_MODULE: config.settings.production
     image: missioncontrol_production_django
     depends_on:
       - postgres
-      - frontend
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
-    environment:
-      - FRONTEND_BUILD_COMPLETE_FILE=/app/frontend/build/complete
     command: /start
     restart: always
-    volumes:
-      - production_frontend_build:/app/frontend/build
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: ./Dockerfile
-      args:
-        - NODE_ENV=production
-
-    command: build
-    environment:
-      - BUILD_COMPLETE_FILE=/app/build/complete
-    volumes:
-      - production_frontend_build:/app/build
 
   postgres:
     build:
