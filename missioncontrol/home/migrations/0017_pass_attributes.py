@@ -7,15 +7,15 @@ from django.contrib.postgres.operations import HStoreExtension
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0016_verbose_plural_names'),
-    ]
+    dependencies = [("home", "0016_verbose_plural_names")]
 
     operations = [
         HStoreExtension(),
         migrations.AddField(
-            model_name='pass',
-            name='attributes',
-            field=django.contrib.postgres.fields.hstore.HStoreField(blank=True, null=True),
+            model_name="pass",
+            name="attributes",
+            field=django.contrib.postgres.fields.hstore.HStoreField(
+                blank=True, null=True
+            ),
         ),
     ]

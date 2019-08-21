@@ -7,32 +7,35 @@ import home.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0002_better_satellites'),
-    ]
+    dependencies = [("home", "0002_better_satellites")]
 
     operations = [
         migrations.CreateModel(
-            name='GroundStation',
+            name="GroundStation",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True,
-                                        serialize=False, verbose_name='ID')),
-                ('hwid', models.CharField(
-                    max_length=30,
-                    unique=True,
-                    validators=[
-                        django.core.validators.RegexValidator('[a-z]+[0-9]{2}')
-                    ]
-                )),
-                ('latitude', models.DecimalField(decimal_places=6,
-                                                 max_digits=10)),
-                ('longitude', models.DecimalField(decimal_places=6,
-                                                  max_digits=10)),
-                ('elevation', models.DecimalField(decimal_places=3,
-                                                  max_digits=10)),
-                ('horizon_mask', home.models.HorizonMaskField(
-                    default=[5] * 360
-                ))
-            ]
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "hwid",
+                    models.CharField(
+                        max_length=30,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator("[a-z]+[0-9]{2}")
+                        ],
+                    ),
+                ),
+                ("latitude", models.DecimalField(decimal_places=6, max_digits=10)),
+                ("longitude", models.DecimalField(decimal_places=6, max_digits=10)),
+                ("elevation", models.DecimalField(decimal_places=3, max_digits=10)),
+                ("horizon_mask", home.models.HorizonMaskField(default=[5] * 360)),
+            ],
         )
     ]

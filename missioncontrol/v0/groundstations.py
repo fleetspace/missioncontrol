@@ -2,8 +2,7 @@ from home.models import GroundStation
 
 
 def search(limit=100):
-    return [gs.to_dict()
-            for gs in GroundStation.objects.all().order_by('hwid')[:limit]]
+    return [gs.to_dict() for gs in GroundStation.objects.all().order_by("hwid")[:limit]]
 
 
 def get_hwid(hwid):
@@ -33,9 +32,7 @@ def put(hwid, groundstation):
     groundstation["hwid"] = hwid
     groundstation = sanitize(groundstation)
     m = GroundStation(**groundstation).to_dict()
-    gs, _created = GroundStation.objects.update_or_create(
-        defaults=m, hwid=hwid
-    )
+    gs, _created = GroundStation.objects.update_or_create(defaults=m, hwid=hwid)
     status_code = 201 if _created else 200
     return gs.to_dict(), status_code
 

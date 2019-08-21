@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0006_cachedaccess'),
-    ]
+    dependencies = [("home", "0006_cachedaccess")]
 
     operations = [
         migrations.AlterField(
-            model_name='groundstation',
-            name='elevation',
-            field=models.FloatField(help_text='In meters'),
-        ),
+            model_name="groundstation",
+            name="elevation",
+            field=models.FloatField(help_text="In meters"),
+        )
     ]

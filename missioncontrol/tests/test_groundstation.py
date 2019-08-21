@@ -19,7 +19,7 @@ def test_groundstation_create_and_update(test_client, simple_gs):
     response = test_client.put(
         "api/v0/groundstations/{hwid}/".format(hwid="moonbase7"),
         data=data,
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 201
     assert response.json == simple_gs
@@ -27,7 +27,7 @@ def test_groundstation_create_and_update(test_client, simple_gs):
     response = test_client.put(
         "api/v0/groundstations/{hwid}/".format(hwid="moonbase7"),
         data=data,
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json == simple_gs
@@ -40,13 +40,13 @@ def test_groundstation_create_and_delete(test_client, simple_gs):
     response = test_client.put(
         "api/v0/groundstations/{hwid}/".format(hwid="moonbase7"),
         data=data,
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 201
     assert response.json == simple_gs
 
     response = test_client.delete(
-        "api/v0/groundstations/{hwid}/".format(hwid="moonbase7"),
+        "api/v0/groundstations/{hwid}/".format(hwid="moonbase7")
     )
     assert response.status_code == 204
 
@@ -58,7 +58,7 @@ def test_groundstation_create_and_patch(test_client, simple_gs):
     response = test_client.put(
         "api/v0/groundstations/{hwid}/".format(hwid="moonbase7"),
         data=data,
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 201
     assert response.json == simple_gs
@@ -69,9 +69,8 @@ def test_groundstation_create_and_patch(test_client, simple_gs):
     response = test_client.patch(
         "api/v0/groundstations/{hwid}/".format(hwid="moonbase7"),
         data=data,
-        headers=headers
+        headers=headers,
     )
     assert response.status_code == 200
     simple_gs.update(patch)
     assert response.json == simple_gs
-

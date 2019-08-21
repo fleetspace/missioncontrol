@@ -17,21 +17,15 @@ def generate_token(token_info):
         "iss": settings.JWT_ISSUER,
         "iat": int(timestamp),
         "exp": int(timestamp + settings.JWT_LIFETIME_SECONDS),
-        "sub": str(token_info['sub'])
+        "sub": str(token_info["sub"]),
     }
-    return jwt.encode(
-        payload,
-        settings.JWT_SECRET,
-        algorithm=settings.JWT_ALGORITHM
-    )
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
 def decode_jwt(token):
     try:
         return jwt.decode(
-            token,
-            settings.JWT_SECRET,
-            algorithms=[settings.JWT_ALGORITHM]
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
     except JWTError as e:
         six.raise_from(Unauthorized, e)
@@ -41,9 +35,9 @@ def basic_auth(username, password, required_scopes=None):
     user = authenticate(username=username, password=password)
     if user is not None:
         # A backend authenticated the credentials
-        groups = list(user.groups.values('name'))
+        groups = list(user.groups.values("name"))
         scopes = [g["name"] for g in groups]
-        info = {'sub': user.id, 'scope': scopes}
+        info = {"sub": user.id, "scope": scopes}
     else:
         # No backend authenticated the credentials
         return None

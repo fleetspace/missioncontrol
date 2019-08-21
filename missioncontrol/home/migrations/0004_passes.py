@@ -7,34 +7,47 @@ import uuid
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0003_groundstation'),
-    ]
+    dependencies = [("home", "0003_groundstation")]
 
     operations = [
         migrations.CreateModel(
-            name='Pass',
+            name="Pass",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('access_id', models.CharField(max_length=100)),
-                ('source_tle', home.models.TLEField(blank=True, null=True)),
-                ('start_time', models.DateTimeField()),
-                ('end_time', models.DateTimeField()),
-                ('scheduled_on_sat', models.BooleanField(default=False)),
-                ('scheduled_on_gs', models.BooleanField(default=False)),
-                ('is_desired', models.BooleanField(default=True)),
-                ('is_valid', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("access_id", models.CharField(max_length=100)),
+                ("source_tle", home.models.TLEField(blank=True, null=True)),
+                ("start_time", models.DateTimeField()),
+                ("end_time", models.DateTimeField()),
+                ("scheduled_on_sat", models.BooleanField(default=False)),
+                ("scheduled_on_gs", models.BooleanField(default=False)),
+                ("is_desired", models.BooleanField(default=True)),
+                ("is_valid", models.BooleanField(default=True)),
             ],
         ),
         migrations.AddField(
-            model_name='pass',
-            name='groundstation',
-            field=models.ForeignKey(on_delete=False, to='home.GroundStation', to_field='hwid'),
+            model_name="pass",
+            name="groundstation",
+            field=models.ForeignKey(
+                on_delete=False, to="home.GroundStation", to_field="hwid"
+            ),
         ),
         migrations.AddField(
-            model_name='pass',
-            name='satellite',
-            field=models.ForeignKey(on_delete=False, to='home.Satellite', to_field='hwid'),
+            model_name="pass",
+            name="satellite",
+            field=models.ForeignKey(
+                on_delete=False, to="home.Satellite", to_field="hwid"
+            ),
         ),
     ]

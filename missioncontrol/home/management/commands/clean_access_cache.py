@@ -5,11 +5,12 @@ from home.models import CachedAccess
 from django.utils import timezone
 from datetime import timedelta
 
+
 class Command(BaseCommand):
-    help = 'clean out old CachedAccesses'
+    help = "clean out old CachedAccesses"
 
     def handle(self, *args, **options):
         now = timezone.now()
         two_days_ago = now - timedelta(days=2)
         CachedAccess.objects.filter(modified__lt=two_days_ago).delete()
-        self.stdout.write(self.style.SUCCESS('Successfully deleted old CachedAccesses'))
+        self.stdout.write(self.style.SUCCESS("Successfully deleted old CachedAccesses"))

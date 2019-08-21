@@ -24,8 +24,7 @@ def utc(t):
     # ensure UTC
     if t.tzinfo is None:
         t = t.replace(tzinfo=UTC)
-    if t.tzname() != 'UTC':
-        raise ValueError(
-            f"Non-UTC timezones ({t}, {t.tzname()}) are not supported.")
+    if t.tzname() != "UTC":
+        raise ValueError(f"Non-UTC timezones ({t}, {t.tzname()}) are not supported.")
 
     return t

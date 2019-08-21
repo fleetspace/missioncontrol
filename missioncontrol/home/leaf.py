@@ -7,15 +7,29 @@ from textwrap import dedent
 
 class LeafOptions(object):
     __slots__ = [
-        "SAT", "SGS",
-        "RX_FREQ", "RX_BW", "RX_MOD", "RX_POL", "RX_PROTO", "RX_FEC",
-        "TX_FREQ", "TX_BW", "TX_MOD", "TX_POL", "TX_PROTO", "TX_FEC",
-        "DATE", "AOS", "DT", "LOS"
+        "SAT",
+        "SGS",
+        "RX_FREQ",
+        "RX_BW",
+        "RX_MOD",
+        "RX_POL",
+        "RX_PROTO",
+        "RX_FEC",
+        "TX_FREQ",
+        "TX_BW",
+        "TX_MOD",
+        "TX_POL",
+        "TX_PROTO",
+        "TX_FEC",
+        "DATE",
+        "AOS",
+        "DT",
+        "LOS",
     ]
     defaults = {"DT": 0.05}
 
     def __init__(self, **kwargs):
-        self.update(dict.fromkeys(self.__slots__, ''))
+        self.update(dict.fromkeys(self.__slots__, ""))
         self.update(self.defaults)
         self.update(dict(**kwargs))
 
@@ -28,13 +42,15 @@ class LeafOptions(object):
 
 
 class LeafPassFile(object):
-    header_template = dedent("""
+    header_template = dedent(
+        """
     SAT={SAT}, SGS={SGS};
     RX_FREQ={RX_FREQ}, RX_BW={RX_BW}, RX_MOD={RX_MOD}, RX_POL={RX_POL}, RX_PROTO={RX_PROTO}, RX_FEC={RX_FEC};
     TX_FREQ={TX_FREQ}, TX_BW={TX_BW}, TX_MOD={TX_MOD}, TX_POL={TX_POL}, TX_PROTO={TX_PROTO}, TX_FEC={TX_FEC};
     DATE={DATE}, AOS={AOS}, DT={DT}, LOS={LOS};
     AZ(deg), EL(deg), SLANT(km), Doppler(Hz);
-    """).strip()
+    """
+    ).strip()
     line_template = "{azimuth:.2f}, {altitude:.2f}, {range:.2f}, 0.0;"
 
     def __init__(self, track, leafoptions):
@@ -75,22 +91,24 @@ class LeafPassFile(object):
         track = access.iter_track(dt)
 
         def _fmt_time(t):
-            time_str = t.utc_iso(' ', 6)
-            date, time = time_str.split(' ')
+            time_str = t.utc_iso(" ", 6)
+            date, time = time_str.split(" ")
             return time[:-1]  # leave off Z
 
-        leafoptions.update({
-            "SGS": access.satellite.hwid,
-            "SAT": access.satellite.catid,
-            "DATE": access.start_time.utc_strftime("%y/%m/%d"),
-            "AOS": _fmt_time(access.start_time),
-            "LOS": _fmt_time(access.end_time)
-        })
+        leafoptions.update(
+            {
+                "SGS": access.satellite.hwid,
+                "SAT": access.satellite.catid,
+                "DATE": access.start_time.utc_strftime("%y/%m/%d"),
+                "AOS": _fmt_time(access.start_time),
+                "LOS": _fmt_time(access.end_time),
+            }
+        )
         return cls(track, leafoptions)
 
     def __repr__(self):
         # Yep... they need \r\n ... what even is this?
-        return '\r\n'.join(self.header.splitlines() + self._body)
+        return "\r\n".join(self.header.splitlines() + self._body)
 
     @property
     def json(self):

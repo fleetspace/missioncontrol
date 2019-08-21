@@ -6,44 +6,32 @@ import home.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('home', '0004_passes'),
-    ]
+    dependencies = [("home", "0004_passes")]
 
     operations = [
         migrations.AlterField(
-            model_name='groundstation',
-            name='elevation',
-            field=models.FloatField(),
+            model_name="groundstation", name="elevation", field=models.FloatField()
         ),
         migrations.AlterField(
-            model_name='groundstation',
-            name='hwid',
+            model_name="groundstation",
+            name="hwid",
             field=models.CharField(max_length=30, unique=True),
         ),
         migrations.AlterField(
-            model_name='groundstation',
-            name='latitude',
-            field=models.FloatField(),
+            model_name="groundstation", name="latitude", field=models.FloatField()
         ),
         migrations.AlterField(
-            model_name='groundstation',
-            name='longitude',
-            field=models.FloatField(),
+            model_name="groundstation", name="longitude", field=models.FloatField()
         ),
         migrations.AlterField(
-            model_name='pass',
-            name='access_id',
+            model_name="pass",
+            name="access_id",
             field=models.CharField(blank=True, max_length=100),
         ),
         migrations.AlterField(
-            model_name='pass',
-            name='end_time',
-            field=home.models.ISODateTimeField(),
+            model_name="pass", name="end_time", field=home.models.ISODateTimeField()
         ),
         migrations.AlterField(
-            model_name='pass',
-            name='start_time',
-            field=home.models.ISODateTimeField(),
+            model_name="pass", name="start_time", field=home.models.ISODateTimeField()
         ),
     ]

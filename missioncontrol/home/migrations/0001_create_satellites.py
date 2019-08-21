@@ -7,18 +7,25 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Satellite',
+            name="Satellite",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('hwid', models.TextField(max_length=20, unique=True)),
-                ('catid', models.TextField(blank=True, max_length=20)),
-                ('tle1', models.TextField(blank=True, max_length=100)),
-                ('tle2', models.TextField(blank=True, max_length=100)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("hwid", models.TextField(max_length=20, unique=True)),
+                ("catid", models.TextField(blank=True, max_length=20)),
+                ("tle1", models.TextField(blank=True, max_length=100)),
+                ("tle2", models.TextField(blank=True, max_length=100)),
             ],
-        ),
+        )
     ]

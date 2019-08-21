@@ -16,46 +16,40 @@ def get_active():
     Cache it to disk so we're quicker and don't hit it too often (just in case)
     """
     now = datetime.now()
-    filename = '/tmp/celestrack-active.txt'
-    date_format = '%d %b %Y %H:%M:%S.%f'
+    filename = "/tmp/celestrack-active.txt"
+    date_format = "%d %b %Y %H:%M:%S.%f"
     hours_to_cache = 1
     try:
         with open(filename) as obj:
             data = json.load(obj)
     except (FileNotFoundError, json.JSONDecodeError):
         data = {
-            'date':
-            (now - timedelta(hours=hours_to_cache + 1)).strftime(date_format)
+            "date": (now - timedelta(hours=hours_to_cache + 1)).strftime(date_format)
         }
 
-    date = datetime.strptime(data.get('date'), date_format)
+    date = datetime.strptime(data.get("date"), date_format)
     if (now - date).total_seconds() > hours_to_cache * 60 * 60:
-        active = requests.get(
-            'https://celestrak.com/NORAD/elements/active.txt').text
-        with open(filename, 'w') as obj:
-            json.dump({
-                'date': now.strftime(date_format),
-                'active': active,
-            }, obj)
+        active = requests.get("https://celestrak.com/NORAD/elements/active.txt").text
+        with open(filename, "w") as obj:
+            json.dump({"date": now.strftime(date_format), "active": active}, obj)
             return active
     else:
-        return data.get('active')
+        return data.get("active")
 
 
 def update_tles(args):
     active = get_active()
 
     for satellite in args.mc_api.get_satellites():
-        catid = satellite['catid']
-        ret = re.findall(f'\r\n(.*)\r\n(2 {catid}.*)\r\n', active)
+        catid = satellite["catid"]
+        ret = re.findall(f"\r\n(.*)\r\n(2 {catid}.*)\r\n", active)
         if len(ret) != 1:
             logging.warn(f"Unknown catalougue ID: {catid}")
             continue
         line1 = ret[0][0]
         line2 = ret[0][1]
 
-        args.mc_api.patch_satellite(hwid=satellite['hwid'], tle=[line1, line2])
-
+        args.mc_api.patch_satellite(hwid=satellite["hwid"], tle=[line1, line2])
 
 
 def main():
@@ -77,5 +71,5 @@ def main():
         raise
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

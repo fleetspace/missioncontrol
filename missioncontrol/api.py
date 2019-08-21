@@ -29,11 +29,10 @@ def not_implemented_error(exception):
 
 
 class CustomJSONEncoder(JSONEncoder):
-
     def default(self, obj):
         try:
             if isinstance(obj, datetime):
-                return obj.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+                return obj.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             iterable = iter(obj)
         except TypeError:
             pass
@@ -43,10 +42,10 @@ class CustomJSONEncoder(JSONEncoder):
 
 
 def create_app():
-    app = connexion.FlaskApp(__name__, specification_dir='openapi/', arguments={})
+    app = connexion.FlaskApp(__name__, specification_dir="openapi/", arguments={})
     flask_app = app.app
     flask_app.json_encoder = CustomJSONEncoder
-    app.add_api('openapi.yaml', strict_validation=True)
+    app.add_api("openapi.yaml", strict_validation=True)
     app.add_error_handler(ObjectDoesNotExist, object_does_not_exist)
     app.add_error_handler(ValidationError, validation_error)
     app.add_error_handler(NotImplementedError, not_implemented_error)
@@ -56,5 +55,5 @@ def create_app():
 app = create_app()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=settings.DEBUG)

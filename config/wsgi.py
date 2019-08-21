@@ -16,8 +16,9 @@ from werkzeug.wsgi import DispatcherMiddleware
 # This allows easy placement of apps within the interior
 # missioncontrol directory.
 app_path = os.path.abspath(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-sys.path.append(os.path.join(app_path, 'missioncontrol'))
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+)
+sys.path.append(os.path.join(app_path, "missioncontrol"))
 
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
 # if running multiple sites in the same mod_wsgi process. To fix this, use
@@ -41,22 +42,20 @@ class FullPathDispatcher(DispatcherMiddleware):
     """
 
     def __call__(self, environ, start_response):
-        script = environ.get('PATH_INFO', '')
-        path_info = ''
-        while '/' in script:
+        script = environ.get("PATH_INFO", "")
+        path_info = ""
+        while "/" in script:
             if script in self.mounts:
                 app = self.mounts[script]
                 break
-            script, last_item = script.rsplit('/', 1)
-            path_info = '/%s%s' % (last_item, path_info)
+            script, last_item = script.rsplit("/", 1)
+            path_info = "/%s%s" % (last_item, path_info)
         else:
             app = self.mounts.get(script, self.app)
-        original_script_name = environ.get('SCRIPT_NAME', '')
-        environ['SCRIPT_NAME'] = original_script_name + script
-        environ['PATH_INFO'] = script + path_info
+        original_script_name = environ.get("SCRIPT_NAME", "")
+        environ["SCRIPT_NAME"] = original_script_name + script
+        environ["PATH_INFO"] = script + path_info
         return app(environ, start_response)
 
 
-application = FullPathDispatcher(application, {
-    '/api': api,
-})
+application = FullPathDispatcher(application, {"/api": api})

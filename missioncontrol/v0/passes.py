@@ -20,9 +20,16 @@ from v0.time import utc
 TWO_DAYS_S = 2 * 24 * 60 * 60
 
 
-def search(limit=100, range_start=None, range_end=None, range_inclusive='both',
-           satellites=None, groundstations=None, order_by='start_time',
-           show_stale=False):
+def search(
+    limit=100,
+    range_start=None,
+    range_end=None,
+    range_inclusive="both",
+    satellites=None,
+    groundstations=None,
+    order_by="start_time",
+    show_stale=False,
+):
 
     if satellites is None:
         dj_sats = Satellite.objects.all()
@@ -34,9 +41,7 @@ def search(limit=100, range_start=None, range_end=None, range_inclusive='both',
     else:
         dj_gss = GroundStation.objects.filter(hwid__in=groundstations)
 
-    passes = Pass.objects.filter(
-        satellite__in=dj_sats, groundstation__in=dj_gss,
-    )
+    passes = Pass.objects.filter(satellite__in=dj_sats, groundstation__in=dj_gss)
 
     # set the default time range, if no range is specified
     if range_start is None and range_end is None:
@@ -46,7 +51,7 @@ def search(limit=100, range_start=None, range_end=None, range_inclusive='both',
     # filter the start of the range
     if range_start is not None:
         range_start = utc(range_start)
-        if range_inclusive in ['end', 'neither']:
+        if range_inclusive in ["end", "neither"]:
             passes = passes.filter(start_time__gte=range_start)
         else:
             passes = passes.filter(end_time__gte=range_start)
@@ -54,15 +59,15 @@ def search(limit=100, range_start=None, range_end=None, range_inclusive='both',
     # filter the end of the range
     if range_end is not None:
         range_end = utc(range_end)
-        if range_inclusive in ['start', 'neither']:
+        if range_inclusive in ["start", "neither"]:
             passes = passes.filter(end_time__lte=range_end)
         else:
             passes = passes.filter(start_time__lte=range_end)
 
     if not show_stale:
-        passes = passes.exclude(Q(scheduled_on_gs=False) &
-                                Q(scheduled_on_sat=False) &
-                                Q(is_desired=False))
+        passes = passes.exclude(
+            Q(scheduled_on_gs=False) & Q(scheduled_on_sat=False) & Q(is_desired=False)
+        )
 
     passes = passes.all().order_by(order_by)[:limit]
 
@@ -78,21 +83,21 @@ def delete(uuid):
     problems = []
     if pass_obj.scheduled_on_gs:
         problems += [
-            'pass is scheduled on the groundstation ({hwid})'.format(
-                hwid=pass_obj.groundstation.hwid)
+            "pass is scheduled on the groundstation ({hwid})".format(
+                hwid=pass_obj.groundstation.hwid
+            )
         ]
 
     if pass_obj.scheduled_on_sat:
         problems += [
-            'pass is scheduled on the satellite ({hwid})'.format(
-                hwid=pass_obj.satellite.hwid)
+            "pass is scheduled on the satellite ({hwid})".format(
+                hwid=pass_obj.satellite.hwid
+            )
         ]
 
     if problems:
         raise ProblemException(
-            status=400,
-            title='Cannot delete pass that is scheduled',
-            detail=problems
+            status=400, title="Cannot delete pass that is scheduled", detail=problems
         )
 
     pass_obj.delete()
@@ -139,8 +144,7 @@ def put(uuid, _pass):
         gs_obj = GroundStation.objects.get(hwid=gs_hwid)
         try:
             access_id = Access.from_overlap(
-                _pass["start_time"], _pass["end_time"],
-                sat_obj, gs_obj
+                _pass["start_time"], _pass["end_time"], sat_obj, gs_obj
             ).access_id
         except ObjectDoesNotExist:
             _pass["is_valid"] = False
@@ -165,15 +169,15 @@ def put(uuid, _pass):
     m["task_stack"] = task_stack
     m["source_tle"] = m["satellite"].tle
 
-    _pass, _created = Pass.objects.update_or_create(
-        defaults=m, uuid=uuid
-    )
+    _pass, _created = Pass.objects.update_or_create(defaults=m, uuid=uuid)
     status_code = 201 if _created else 200
     return _pass.to_dict(), status_code
+
 
 def get_attributes(uuid):
     _pass = Pass.objects.get(uuid=uuid)
     return _pass.attributes or {}
+
 
 def patch_attributes(uuid, attributes):
     _pass = Pass.objects.get(uuid=uuid)
@@ -183,6 +187,7 @@ def patch_attributes(uuid, attributes):
         _pass.attributes = attributes
     _pass.save()
     return _pass.attributes or {}
+
 
 def put_attributes(uuid, attributes):
     _pass = Pass.objects.get(uuid=uuid)
