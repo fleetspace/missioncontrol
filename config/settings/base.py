@@ -44,7 +44,7 @@ USE_TZ = True
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-DATABASES = {"default": env.db("DATABASE_URL")}
+DATABASES = {"default": env.db("DATABASE_URL", "")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 # URLS
@@ -242,7 +242,7 @@ EPHEM_DIR = os.path.abspath(os.path.join(APPS_DIR, "ephemeris"))
 JWT_ISSUER = "space.fleet.missioncontrol"
 JWT_LIFETIME_SECONDS = 600
 JWT_ALGORITHM = "HS256"
-JWT_SECRET = env.str("DJANGO_JWT_SECRET")
+JWT_SECRET = env.str("DJANGO_JWT_SECRET", "")
 
 WHITENOISE_INDEX_FILE = True
 

@@ -8,7 +8,10 @@ services:
   django: &django
     build:
       context: .
-      dockerfile: ./compose/local/django/Dockerfile
+      dockerfile: ./compose/django/Dockerfile
+      args:
+        DJANGO_SETTINGS_MODULE: config.settings.local
+        PIPENV_ARGS: '--dev'
     image: missioncontrol_local_django
     depends_on:
       - postgres
@@ -19,7 +22,9 @@ services:
       - ./.envs/.local/.postgres
     ports:
       - "8000:8000"
-    command: /start
+    command: >
+      bash -c "pipenv run python manage.py migrate
+      && pipenv run python manage.py runserver_plus 0.0.0.0:8000"
 
   frontend:
     build:
@@ -34,13 +39,12 @@ services:
       - ./frontend:/app
     environment:
       - REACT_APP_PROXY=http://django:8000/
-      - BUILD_COMPLETE_FILE=/app/build/complete
 
   postgres:
     build:
       context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: missioncontrol_production_postgres
+      dockerfile: ./compose/postgres/Dockerfile
+    image: missioncontrol_local_postgres
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - local_postgres_data_backups:/backups

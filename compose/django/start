@@ -8,12 +8,5 @@ set -o nounset
 # the frontend to compile
 pipenv run ./manage.py getephem &
 
-rm -rf ${FRONTEND_BUILD_COMPLETE_FILE}
-while [ ! -f ${FRONTEND_BUILD_COMPLETE_FILE} ]
-do
-    echo "Waiting on frontend to complete..."
-    sleep 1
-done
-
 pipenv run python /app/manage.py collectstatic --noinput
 pipenv run gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app
