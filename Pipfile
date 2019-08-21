@@ -4,12 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = {extras = ["argon2"],version = ">=2.1.11"}
+django = {extras = ["argon2"],version = "<2.2.0"}
 requests = "*"
 pytz = "*"
 connexion = {extras = ["swagger-ui"],version = "*"}
 gunicorn = "*"
-psycopg2 = "*"
+psycopg2-binary = "*"
 whitenoise = {extras = ["brotli"],version = "*"}
 pytest-django = "*"
 bitarray = "*"
