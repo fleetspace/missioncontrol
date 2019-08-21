@@ -1,0 +1,45 @@
+service:
+  name: missioncontrol
+  port: 8000
+  healthEndpoint: /
+  desiredCount: 1
+  dockerfile: ./compose/django/Dockerfile
+  pathPatterns:
+  - /*
+  pipeline:
+    source:
+      branch: mu
+  database:
+    name: missioncontrol
+    engine: aurora-postgresql
+    engineMode: serverless
+    secondsUntilAutoPause: 300
+    # https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.create.html
+    # Valid values: Aurora PostgreSQL: 8, 16, 32, 64, 192, and 384.
+    minSize: 2
+    maxSize: 192
+    masterUsername: missioncontrol
+
+
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.production
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+    DJANGO_JWT_SECRET: ${DJANGO_JWT_SECRET}
+    DJANGO_ADMIN_URL: admin/
+    DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+    POSTGRES_HOST: ${DatabaseEndpointAddress}
+    POSTGRES_PORT: ${DatabaseEndpointPort}
+    POSTGRES_USER: ${DatabaseMasterUsername}
+    POSTGRES_PASSWORD: ${DatabaseMasterPassword}
+
+environments:
+  - name: production
+    provider: ecs-fargate
+    cluster:
+      instanceType: t2a.nano
+    loadbalancer:
+      certificate: 'xxxyyzz'
+  - name: acceptance
+    provider: ecs-fargate
+    cluster:
+      instanceType: t2a.nano

@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - ./cli/pytest
+
+artifacts:
+  files:
+    - '**/*'
+
