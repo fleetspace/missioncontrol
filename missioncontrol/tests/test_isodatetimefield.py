@@ -29,7 +29,7 @@ def test_isodatetimefield():
     model.datetime = naive
     with pytest.raises(ValueError) as exc:
         field.value_to_string(model)
-    assert "Naive timezone was passed in" in str(exc)
+    assert "Naive timezone was passed in" in str(exc.value)
 
     model.datetime = utc
     assert field.value_to_string(model) == "2018-02-03T04:05:06.000007Z"

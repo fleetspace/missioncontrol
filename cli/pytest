@@ -2,4 +2,4 @@
 COMPOSE_FILE=${COMPOSE_FILE:-local.yml}
 CMD="PYTHONPATH=/app:/app/missioncontrol pipenv run pytest $@"
 
-docker-compose run --rm django bash -c "$CMD"
+docker-compose -f ${COMPOSE_FILE} run --rm django bash -c "$CMD"
