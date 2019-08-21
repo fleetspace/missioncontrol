@@ -10,8 +10,8 @@ ENV PATH=$PATH:/app/node_modules/.bin
 
 ARG NODE_ENV
 
-RUN yarn
-RUN yarn build
+RUN npm ci
+RUN npm run build
 
 
 FROM ubuntu:18.04
