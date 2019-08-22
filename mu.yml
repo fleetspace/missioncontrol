@@ -3,7 +3,6 @@ service:
   port: 8000
   healthEndpoint: /
   desiredCount: 1
-  dockerfile: ./compose/django/Dockerfile
   pathPatterns:
   - /*
   pipeline:
