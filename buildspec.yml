@@ -3,7 +3,9 @@ version: 0.1
 phases:
   build:
     commands:
-      - git submodule update --init
+      # Damn codepipeline doesn't give us our git folder so we can't just use git submodules...
+      # TODO make this use the right commit?
+      - git clone https://github.com/fleetspace/missioncontrol_frontend ./frontend
 
 artifacts:
   files:
