@@ -42,3 +42,16 @@ environments:
     provider: ecs-fargate
     cluster:
       instanceType: t2a.nano
+
+
+
+
+templates:
+  mu-pipeline-missioncontrol:
+    Resources:
+      CodeBuildImage:
+        Properties:
+          Environment:
+            EnvironmentVariables:
+            - Name: DJANGO_SETTINGS_MODULE
+              Value: config.settings.production
