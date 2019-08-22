@@ -34,7 +34,7 @@ USER django
 # cached
 COPY --chown=django:django ./Pipfile* /app/
 ARG PIPENV_ARGS
-RUN pipenv install --deploy ${PIPENV_ARGS}
+RUN pipenv install --deploy --dev
 
 # Load ephemeris as this is slow - and put it before app copy as files change more often
 RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load("de405.bsp"); load.timescale()'
