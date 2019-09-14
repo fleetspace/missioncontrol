@@ -567,6 +567,7 @@ paths:
            type: string
            format: uuid
       requestBody:
+        description: "Use **either** an `access_id` or all of `satellite` `groundstation` `start_time` and `end_time` to specify the Pass."
         content:
           application/json:
             schema:
