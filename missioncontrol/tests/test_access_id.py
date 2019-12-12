@@ -6,7 +6,7 @@ from django.conf import settings
 from v0.accesses import Access, filter_range
 
 load = Loader(settings.EPHEM_DIR)
-timescale = load.timescale()
+timescale = load.timescale(builtin=True)
 
 
 def test_access_id_roundtrip():
@@ -18,7 +18,7 @@ def test_access_id_roundtrip():
 
 
 class Window(object):
-    ts = load.timescale()
+    ts = load.timescale(builtin=True)
 
     def __init__(self, start_time, end_time):
         self.start_time = self.ts.utc(start_time)
@@ -43,7 +43,7 @@ windows = [
     ],
 )
 def test_filter_range_inclusive_both(windows, range_inclusive, expected):
-    ts = load.timescale()
+    ts = load.timescale(builtin=True)
     range_start = ts.utc(2019)
     range_end = ts.utc(2021)
     filtered = list(filter_range(windows, range_start, range_end, range_inclusive))

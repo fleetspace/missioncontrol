@@ -23,6 +23,7 @@ python-jose = "*"
 tabulate = "*"
 django-environ = "*"
 python-dateutil = "*"
+importlib-metadata = "*"
 
 [dev-packages]
 pylint = "*"
@@ -32,6 +33,7 @@ rope = "*"
 django-debug-toolbar = "*"
 django-extensions = "*"
 pre-commit = "*"
+pytest-pythonpath = "*"
 
 [requires]
 python_version = "3.6"

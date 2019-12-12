@@ -37,7 +37,8 @@ ARG PIPENV_ARGS
 RUN pipenv install --deploy ${PIPENV_ARGS}
 
 # Load ephemeris as this is slow - and put it before app copy as files change more often
-RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load("de405.bsp"); load.timescale()'
+RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load("de405.bsp")'
+RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load.timescale(builtin=True)'
 
 COPY --chown=django:django ./compose/django/entrypoint /entrypoint
 COPY --chown=django:django ./compose/django/start /start

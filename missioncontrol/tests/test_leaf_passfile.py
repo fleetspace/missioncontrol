@@ -10,6 +10,7 @@ from home.leaf import LeafPassFile, LeafOptions
         ([358, 359, 0, 1, 2], [-2, -1, 0, 1, 2]),
         ([2, 1, 0, 359, 358], [2, 1, 0, -1, -2]),
         ([358, 359, 360], [358, 359, 360]),
+        ([182, 181, 180, 179, 178], [182, 181, 180, 179, 178]),
     ],
 )
 def test_boundary_crossing(test_in, test_cmp):

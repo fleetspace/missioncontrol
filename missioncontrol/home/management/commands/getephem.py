@@ -9,7 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         load = Loader(settings.EPHEM_DIR)
         load("de405.bsp")
-        load.timescale()
+        load.timescale(builtin=True)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Successfully downloaded ephemeris files to {settings.EPHEM_DIR}!"
