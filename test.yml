@@ -1,0 +1,49 @@
+version: '3.1'
+
+volumes:
+  test_postgres_data: {}
+  test_postgres_data_backups: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile
+      args:
+        DJANGO_SETTINGS_MODULE: config.settings.test
+        PIPENV_ARGS: '--dev'
+    image: missioncontrol_test_django
+    depends_on:
+      - postgres
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "pipenv run python manage.py migrate
+      && pipenv run python manage.py runserver_plus 0.0.0.0:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    image: missioncontrol_test_frontend
+    ports:
+      - "3000:3000"
+    command: start
+    depends_on:
+      - django
+    environment:
+      - REACT_APP_PROXY=http://django:8000/
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/postgres/Dockerfile
+    image: missioncontrol_test_postgres
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+      - test_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+
