@@ -24,7 +24,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 RUN addgroup django \
-  && adduser --ingroup django django
+  && adduser --ingroup --disabled-password --gecos "" django django
 
 WORKDIR /app
 RUN chown -R django /app
