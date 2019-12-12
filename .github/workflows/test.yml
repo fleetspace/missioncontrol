@@ -1,0 +1,17 @@
+name: Test
+on: 
+  push:
+    branches:
+      - '*'
+jobs:
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Run make test
+      run: make test
+    
