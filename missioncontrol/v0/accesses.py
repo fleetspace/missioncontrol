@@ -55,7 +55,7 @@ def timescale_functions():
         a global variable.
         This closure exposes two functions that rely on a global timescale,
     """
-    timescale = load.timescale()
+    timescale = load.timescale(builtin=True)
 
     def now():
         return timescale.now()
@@ -156,7 +156,7 @@ class Access(object):
     """ An Access is when a Groundstation has visibility to a Satellite
     """
 
-    _timescale = load.timescale()
+    _timescale = load.timescale(builtin=True)
 
     def __init__(self, start_time, end_time, sat, gs, max_alt, base_url=""):
         self._start_time = tt(start_time)
@@ -486,7 +486,7 @@ def _find_accesses(sat, gs, start, end, ts):
 
 
 class AccessCalculator(object):
-    timescale = load.timescale()
+    timescale = load.timescale(builtin=True)
 
     def __init__(self, base_url=""):
         self._base_url = base_url

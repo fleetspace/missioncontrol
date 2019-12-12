@@ -62,7 +62,7 @@ class LeafPassFile(object):
 
         # ensure track always crosses 0, and not 360
         sorted_azs = sorted(azs)
-        is_contiguous = sorted_azs == azs or reversed(sorted_azs) == azs
+        is_contiguous = sorted_azs == azs or list(reversed(sorted_azs)) == azs
         if not is_contiguous and max(azs) > 180.0:
             for step in track:
                 if step["azimuth"] > 180.0:
