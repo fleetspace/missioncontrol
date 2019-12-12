@@ -23,8 +23,8 @@ RUN pip3 install pipenv
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-RUN addgroup --system django \
-  && adduser --system --ingroup django django
+RUN addgroup django \
+  && adduser --ingroup django django
 
 WORKDIR /app
 RUN chown -R django /app
