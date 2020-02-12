@@ -7,7 +7,7 @@ name = "pypi"
 django = {extras = ["argon2"],version = "<2.3.0"}
 requests = "*"
 pytz = "*"
-connexion = {extras = ["swagger-ui"],version = "*"}
+connexion = {extras = ["swagger-ui"],version = ">=2.6.0"}
 gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = {extras = ["brotli"],version = "*"}
