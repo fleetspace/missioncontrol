@@ -1,7 +1,11 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+
 # missioncontrol  
 Mission Control stores all of the state about satellites, grounstations, passes, telemetry, etc.  
+
+![MissionControlDashboard](https://user-images.githubusercontent.com/817933/90140535-0ae9bc80-ddb9-11ea-8b28-07eea0d40856.png)
+
 
 ## Configuration
 A large part of this project was built using cookiecutter-django.  
