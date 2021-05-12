@@ -11,7 +11,7 @@ import os
 import sys
 
 from django.core.wsgi import get_wsgi_application
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 # This allows easy placement of apps within the interior
 # missioncontrol directory.
