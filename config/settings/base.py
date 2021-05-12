@@ -141,7 +141,8 @@ STATICFILES_FINDERS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
 MEDIA_ROOT = str(APPS_DIR("media"))
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
+# TODO - if custom media is ever used this might not be working currently
+MEDIA_URL = "media/"
 
 # TEMPLATES
 # ------------------------------------------------------------------------------
