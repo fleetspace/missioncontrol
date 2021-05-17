@@ -1,9 +1,12 @@
-[[source]]
-url = "https://pypi.org/simple"
-verify_ssl = true
-name = "pypi"
+[tool.poetry]
+name = "missioncontrol"
+version = "0.0.1"
+description = "Mission Planning for Large Constellations"
+authors = ["Louis des Landes <louis.deslandes@fleet.space>"]
+license = "Apache-2.0"
 
-[packages]
+[tool.poetry.dependencies]
+python = "^3.6"
 django = {extras = ["argon2"],version = "<2.3.0"}
 requests = "*"
 pytz = "*"
@@ -24,8 +27,7 @@ tabulate = "*"
 django-environ = "*"
 python-dateutil = "*"
 importlib-metadata = "*"
-
-[dev-packages]
+[tool.poetry.dev-dependencies]
 pylint = "*"
 "autopep8" = "*"
 yapf = "*"
@@ -35,5 +37,6 @@ django-extensions = "*"
 pre-commit = "*"
 pytest-pythonpath = "*"
 
-[requires]
-python_version = "3.6"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

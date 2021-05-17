@@ -28,15 +28,15 @@ See here for some additional configuration options : http://cookiecutter-django.
       `docker-compose up`
 
 3. Migrate the database and create a user  
-      `docker-compose -f local.yml run --rm django pipenv run ./manage.py migrate`  
-      `docker-compose -f local.yml run --rm django pipenv run ./manage.py createsuperuser`
+      `docker-compose -f local.yml run --rm django poetry run ./manage.py migrate`  
+      `docker-compose -f local.yml run --rm django poetry run ./manage.py createsuperuser`
 
 ## Deployment method (production)
 
 1. `git pull`
 2. `git submodule update`
 3. `docker-compose -f production.yml up --build -d`
-4. `docker-compose -f production.yml run --rm django pipenv run ./manage.py migrate`
+4. `docker-compose -f production.yml run --rm django poetry run ./manage.py migrate`
 
 ## Initial deployment (production)
 
@@ -81,7 +81,7 @@ See here for some additional configuration options : http://cookiecutter-django.
 
 * Create a superuser: 
     ```
-    docker-compose -f production.yml run --rm django pipenv run ./manage.py createsuperuser
+    docker-compose -f production.yml run --rm django poetry run ./manage.py createsuperuser
     ```
 
 * Follow the [Deployment Method](#deployment-method-production) steps.

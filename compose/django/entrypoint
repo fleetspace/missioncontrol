@@ -10,7 +10,7 @@ export DATABASE_URL="${DATABASE_URL:=$BUILT_URL}"
 set -o nounset
 
 postgres_ready() {
-pipenv run python << END
+poetry run python << END
 import sys
 
 import psycopg2
