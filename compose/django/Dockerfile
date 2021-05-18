@@ -19,7 +19,7 @@ FROM ubuntu:18.04
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && apt-get install --yes python3 python3-pip
-RUN pip3 install pipenv
+RUN pip3 install poetry
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
@@ -32,13 +32,12 @@ USER django
 
 # Do this before the copy so the python requirements can be
 # cached
-COPY --chown=django:django ./Pipfile* /app/
-ARG PIPENV_ARGS
-RUN pipenv install --deploy ${PIPENV_ARGS}
+COPY --chown=django:django ./pyproject.toml ./poetry.lock /app/
+RUN poetry install
 
 # Load ephemeris as this is slow - and put it before app copy as files change more often
-RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load("de405.bsp")'
-RUN pipenv run python -c 'from skyfield.api import Loader; load = Loader("app/"); load.timescale(builtin=True)'
+RUN poetry run python -c 'from skyfield.api import Loader; load = Loader("app/"); load("de405.bsp")'
+RUN poetry run python -c 'from skyfield.api import Loader; load = Loader("app/"); load.timescale(builtin=True)'
 
 COPY --chown=django:django ./compose/django/entrypoint /entrypoint
 COPY --chown=django:django ./compose/django/start /start
@@ -48,6 +47,6 @@ COPY --from=frontend --chown=django:django /app/build /app/frontend/build
 
 ARG DJANGO_SETTINGS_MODULE
 # As collectstatic requires the secret key to be set, use a temporary one
-RUN env DJANGO_SECRET_KEY='collectstatic' pipenv run python /app/manage.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
+RUN env DJANGO_SECRET_KEY='collectstatic' poetry run python /app/manage.py collectstatic --noinput --settings=${DJANGO_SETTINGS_MODULE}
 
 ENTRYPOINT ["/entrypoint"]

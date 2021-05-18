@@ -6,7 +6,7 @@ set -o nounset
 
 # Might as well do this in the background while we wait for
 # the frontend to compile
-pipenv run ./manage.py getephem &
+poetry run ./manage.py getephem &
 
-pipenv run python /app/manage.py collectstatic --noinput
-pipenv run gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app
+poetry run python /app/manage.py collectstatic --noinput
+poetry run gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app

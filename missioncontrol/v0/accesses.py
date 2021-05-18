@@ -50,10 +50,10 @@ load = Loader(settings.EPHEM_DIR)
 
 
 def timescale_functions():
-    """ skyfield requires a "timescale" object that is used for things like
-        leap seconds. we want to initialize it once, but avoid making it
-        a global variable.
-        This closure exposes two functions that rely on a global timescale,
+    """skyfield requires a "timescale" object that is used for things like
+    leap seconds. we want to initialize it once, but avoid making it
+    a global variable.
+    This closure exposes two functions that rely on a global timescale,
     """
     timescale = load.timescale(builtin=True)
 
@@ -67,8 +67,7 @@ def timescale_functions():
         return timescale.utc(*map(sum, zip(t.utc, (0, 0, 0, 0, 0, s))))
 
     def tt(t):
-        """ do whatever it takes to make time into skyfield
-        """
+        """do whatever it takes to make time into skyfield"""
         if t == "now":
             return now()
         if isinstance(t, str):
@@ -89,15 +88,18 @@ def timescale_functions():
         mid_time = timescale.tai_jd(((start_time.tai + end_time.tai) / 2))
         return mid_time
 
-    return add_seconds, now, tt, tt_iso, tt_midpoint
+    def tai_jd(t):
+        return timescale.tai_jd(t)
+
+    return add_seconds, now, tt, tt_iso, tt_midpoint, tai_jd
 
 
-add_seconds, now, tt, tt_iso, tt_midpoint = timescale_functions()
+add_seconds, now, tt, tt_iso, tt_midpoint, tai_jd = timescale_functions()
 
 
 def make_timeseries(start, end, step):
-    """ return a list of times from start to end.
-        each step is 'step' seconds after the previous time.
+    """return a list of times from start to end.
+    each step is 'step' seconds after the previous time.
     """
     if end.tt < start.tt:
         raise RuntimeError("end cannot be before start")
@@ -111,8 +113,7 @@ def make_timeseries(start, end, step):
 
 
 def get_default_range(range_start=None, range_end=None):
-    """ cast to internal time, set default range_start and range_end times
-    """
+    """cast to internal time, set default range_start and range_end times"""
     if range_start is None:
         range_start = now()
     else:
@@ -126,16 +127,16 @@ def get_default_range(range_start=None, range_end=None):
 
 
 def filter_range(windows, range_start, range_end, range_inclusive):
-    """ given a list of time windows (object that have start and end times),
-        filters out items base on the range_inclusive criteria:
-          start - the start of the range is inclusive
-          end - the end of the range is inclusive
-          neither - all windows must fit completely within range
-          both (default) - windows that overlap with range are returned
+    """given a list of time windows (object that have start and end times),
+    filters out items base on the range_inclusive criteria:
+      start - the start of the range is inclusive
+      end - the end of the range is inclusive
+      neither - all windows must fit completely within range
+      both (default) - windows that overlap with range are returned
 
-        this is useful for pagination, when you may want to set either end to
-        inclusive depending on the direction of the page so as to not get
-        duplicate items.
+    this is useful for pagination, when you may want to set either end to
+    inclusive depending on the direction of the page so as to not get
+    duplicate items.
     """
     # filter the start of the range
     if range_inclusive in ["end", "neither"]:
@@ -153,8 +154,7 @@ def filter_range(windows, range_start, range_end, range_inclusive):
 
 
 class Access(object):
-    """ An Access is when a Groundstation has visibility to a Satellite
-    """
+    """An Access is when a Groundstation has visibility to a Satellite"""
 
     _timescale = load.timescale(builtin=True)
 
@@ -178,11 +178,10 @@ class Access(object):
         return copy.copy(self)
 
     def clip(self, start, end):
-        """ returns a new access, with clipped start and end times
-        """
+        """returns a new access, with clipped start and end times"""
         access = self.clone()
-        access._start_time.tai = max(tt(start).tai, access.start_time.tai)
-        access._end_time.tai = min(tt(end).tai, access.end_time.tai)
+        access._start_time = tai_jd(max(tt(start).tai, access.start_time.tai))
+        access._end_time = tai_jd(min(tt(end).tai, access.end_time.tai))
         return access
 
     @property
@@ -407,21 +406,20 @@ class Access(object):
 
 
 def _find_accesses_wrapper(args):
-    """ Wrapper to unpack args tuple
-        Needed because multiprocessing passes args as a tuple
+    """Wrapper to unpack args tuple
+    Needed because multiprocessing passes args as a tuple
     """
     return _find_accesses(*args)
 
 
 def _find_accesses(sat, gs, start, end, ts):
-    """ finds a single timestamp from each access in the provided time
-        window.
+    """finds a single timestamp from each access in the provided time
+    window.
     """
     pair = gs.observe(sat)
 
     def f(t, use_horizonmask=True):
-        """ function to maximize
-        """
+        """function to maximize"""
 
         def _get_horizon(az_deg):
             return gs.horizon_mask[int(az_deg)]
@@ -436,8 +434,7 @@ def _find_accesses(sat, gs, start, end, ts):
         return alt.degrees
 
     def minusf(t):
-        """ function to minimize
-        """
+        """function to minimize"""
         return -f(t)
 
     t0 = start.tai
@@ -500,14 +497,14 @@ class AccessCalculator(object):
         end_time=None,
         filter_func=None,
     ):
-        """ calculates all of the access between a given list of satellites
-            and groundstations over the range between start_time and end_time.
+        """calculates all of the access between a given list of satellites
+        and groundstations over the range between start_time and end_time.
 
-            If no times are given, then the default propagation window is from
-            "now" until two days from now
+        If no times are given, then the default propagation window is from
+        "now" until two days from now
 
-            filter_func allows you to pass in a function to filter out bad
-            accesses.
+        filter_func allows you to pass in a function to filter out bad
+        accesses.
         """
         try:
             base_url = request.url_root
@@ -590,8 +587,7 @@ def get_track(access_id, step=DEF_STEP_S):
 class CachedAccessCalculator(AccessCalculator):
     @staticmethod
     def _sat_gs_vector_hash(tle1, tle2, lat, lon, el, horizon_mask):
-        """ returns a hash that matches on TLE and GS location and horizon mask
-        """
+        """returns a hash that matches on TLE and GS location and horizon mask"""
         to_hash = [tle1, tle2, round(lat, 6), round(lon, 6), round(el, 6)]
         to_hash += horizon_mask
         to_hash = str(to_hash)
@@ -599,9 +595,9 @@ class CachedAccessCalculator(AccessCalculator):
 
     @classmethod
     def _cached_pair_compute(cls, sat, gs, tbucket):
-        """ computes accesses for a given (sat,gs) pair on a given tbucket
-            (julian day), and caches the results.
-            returns cached results if they are available.
+        """computes accesses for a given (sat,gs) pair on a given tbucket
+        (julian day), and caches the results.
+        returns cached results if they are available.
         """
         start = cls.timescale.tai(jd=int(tbucket))
         end = cls.timescale.tai(jd=int(tbucket) + 1)
@@ -657,8 +653,7 @@ class CachedAccessCalculator(AccessCalculator):
 
     @classmethod
     def _chunked_compute(cls, sats, gss, range_start, range_end, limit=100):
-        """ breaks up time range into chunks, and computes one chunk at a time
-        """
+        """breaks up time range into chunks, and computes one chunk at a time"""
         bucket_start = int(math.floor(range_start.tai))
         bucket_end = int(math.ceil(range_end.tai))
 
@@ -683,14 +678,14 @@ class CachedAccessCalculator(AccessCalculator):
         filter_func=None,
         limit=100,
     ):
-        """ calculates all of the access between a given list of satellites
-            and groundstations over the range between start_time and end_time.
+        """calculates all of the access between a given list of satellites
+        and groundstations over the range between start_time and end_time.
 
-            If no times are given, then the default propagation window is from
-            "now" until two days from now
+        If no times are given, then the default propagation window is from
+        "now" until two days from now
 
-            filter_func allows you to pass in a function to filter out bad
-            accesses.
+        filter_func allows you to pass in a function to filter out bad
+        accesses.
         """
         try:
             base_url = request.url_root
