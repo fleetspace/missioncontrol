@@ -18,7 +18,7 @@ FROM ubuntu:18.04
 
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install --yes python3 python3-pip
+RUN apt-get update && apt-get install --yes python3 python3-pip libpq-dev
 RUN pip3 install poetry
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
