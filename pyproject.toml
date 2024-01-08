@@ -10,7 +10,7 @@ python = "^3.6"
 django = {extras = ["argon2"],version = "<2.3.0"}
 requests = "*"
 pytz = "*"
-connexion = ">=2.6.0"
+connexion = {version = ">=2.14.2", extras = ["swagger-ui"]}
 gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = {extras = ["brotli"],version = "*"}
